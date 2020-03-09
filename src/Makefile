@@ -1,6 +1,6 @@
 CFLAGS			:= --std=c99
 
-CC				:= gcc
+CC			:= gcc
 
 targets			:= palindrome
 
