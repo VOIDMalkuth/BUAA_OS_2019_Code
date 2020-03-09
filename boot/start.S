@@ -35,6 +35,9 @@ LEAF(_start) /*LEAF is defined in asm.h and LEAF functions don't call other func
 	  call main func.
 	*/
 
+    lui sp, 0x8040 // lower 16bit goes to 0 automatically
+    jal main
+
 			
 loop:
 	j	loop
