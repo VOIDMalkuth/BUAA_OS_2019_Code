@@ -26,17 +26,20 @@ objects :=$(objects) $(test_dir)/*.o
 endif
 
 
-.PHONY: all $(modules) clean
+.PHONY: all $(modules) clean run
 
 all: $(modules) vmlinux
 
 vmlinux: $(modules)
 	$(LD) -o $(vmlinux_elf) -N -T $(link_script) $(objects)
 
-$(modules): 
+$(modules):
 	$(MAKE) --directory=$@
 
-clean: 
+run: $(modules) vmlinux
+	cd gxemul && ./runVmlinux.sh
+
+clean:
 	for d in $(modules);	\
 		do					\
 			$(MAKE) --directory=$$d clean; \
