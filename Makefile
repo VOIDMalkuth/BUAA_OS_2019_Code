@@ -8,25 +8,21 @@ drivers_dir	  := drivers
 boot_dir	  := boot
 init_dir	  := init
 lib_dir		  := lib
+mm_dir		  := mm
 tools_dir	  := tools
-test_dir          :=
 vmlinux_elf	  := gxemul/vmlinux
 
 link_script   := $(tools_dir)/scse0_3.lds
 
-modules		  := boot drivers init lib $(test_dir)
+modules		  := boot drivers init lib mm
 objects		  := $(boot_dir)/start.o			  \
 				 $(init_dir)/main.o			  \
 				 $(init_dir)/init.o			  \
 			   	 $(drivers_dir)/gxconsole/console.o \
-				 $(lib_dir)/*.o
+				 $(lib_dir)/*.o				  \
+				 $(mm_dir)/*.o
 
-ifneq ($(test_dir),)
-objects :=$(objects) $(test_dir)/*.o
-endif
-
-
-.PHONY: all $(modules) clean run
+.PHONY: all $(modules) clean
 
 all: $(modules) vmlinux
 
@@ -35,9 +31,6 @@ vmlinux: $(modules)
 
 $(modules):
 	$(MAKE) --directory=$@
-
-run: $(modules) vmlinux
-	cd gxemul && ./runVmlinux.sh
 
 clean:
 	for d in $(modules);	\
