@@ -22,7 +22,7 @@ objects		  := $(boot_dir)/start.o			  \
 				 $(lib_dir)/*.o				  \
 				 $(mm_dir)/*.o
 
-.PHONY: all $(modules) clean
+.PHONY: all $(modules) run clean
 
 all: $(modules) vmlinux
 
@@ -31,6 +31,9 @@ vmlinux: $(modules)
 
 $(modules):
 	$(MAKE) --directory=$@
+
+run: $(modules) vmlinux
+	cd gxemul && ./runVmlinux.sh
 
 clean:
 	for d in $(modules);	\
