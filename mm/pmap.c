@@ -28,7 +28,7 @@ void get_page_status(int pa) {
     int var2 = 0;
     if (pp->pp_ref != 0) {
         var2 = 3;
-    } else if (pp->pp_link.le_next != NULL && pp->pp_link.le_next != NULL) {
+    } else if (pp->pp_link.le_next == NULL && pp->pp_link.le_next == NULL) {
         var2 = 2;
     } else {
         var2 = 1;
