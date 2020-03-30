@@ -70,17 +70,19 @@ static void *alloc(u_int n, u_int align, int clear)
     /* Initialize `freemem` if this is the first time. The first virtual address that the
      * linker did *not* assign to any kernel code or global variables. */
     if (freemem == 0) {
-        freemem = (u_long)end;
+        freemem = maxpa - 1 + ULIM;
     }
 
     /* Step 1: Round up `freemem` up to be aligned properly */
-    freemem = ROUND(freemem, align);
+    //freemem = ROUND(freemem, align);
+    alloced_mem = freemem - n;
+    alloced_mem = ROUNDDOWN(alloced_mem, align);
 
     /* Step 2: Save current value of `freemem` as allocated chunk. */
-    alloced_mem = freemem;
+    freemem = alloced_mem;
 
     /* Step 3: Increase `freemem` to record allocation. */
-    freemem = freemem + n;
+    //freemem = freemem + n;
 
     /* Step 4: Clear allocated chunk if parameter `clear` is set. */
     if (clear) {
@@ -88,7 +90,7 @@ static void *alloc(u_int n, u_int align, int clear)
     }
 
     // We're out of memory, PANIC !!
-    if (PADDR(freemem) >= maxpa) {
+    if (freemem < end) {
         panic("out of memorty\n");
         return (void *)-E_NO_MEM;
     }
