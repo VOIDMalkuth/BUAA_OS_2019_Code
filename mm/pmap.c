@@ -19,6 +19,24 @@ static u_long freemem;
 static struct Page_list page_free_list; /* Free list of physical pages */
 
 
+void get_page_status(int pa) {
+    static int var1 = 0;
+
+    var1++;
+    struct Page *pp = pa2page(pa);
+
+    int var2 = 0;
+    if (pp->pp_ref != 0) {
+        var2 = 3;
+    } else if (pp->pp_link.le_next != NULL && pp->pp_link.le_next != NULL) {
+        var2 = 2;
+    } else {
+        var2 = 1;
+    }
+
+    printf("times:%d,page status:%d\n", var1, var2);
+}
+
 /* Overview:
         Initialize basemem and npage.
         Set basemem to be 64MB, and calculate corresponding npage value.*/
@@ -193,7 +211,7 @@ void mips_vm_init()
   Hint:
         Use `LIST_INSERT_HEAD` to insert something to list.*/
 void
-page_init(void)
+page_init(int mode)
 {
     /* Step 1: Initialize page_free_list. */
     /* Hint: Use macro `LIST_INIT` defined in include/queue.h. */
@@ -214,8 +232,11 @@ page_init(void)
     LIST_INSERT_HEAD(&page_free_list, &pages[i], pp_link);
     pages[i].pp_ref = 0;
     for (i = i + 1; i < npage; i++) {
-        LIST_INSERT_AFTER(&pages[i - 1], &pages[i], pp_link);
-        //LIST_INSERT_HEAD(&page_free_list, &pages[i], pp_link);
+        if (mode) {
+            LIST_INSERT_AFTER(&pages[i - 1], &pages[i], pp_link);
+        } else {
+            LIST_INSERT_HEAD(&page_free_list, &pages[i], pp_link);
+        }
         pages[i].pp_ref = 0;
     }
 }
@@ -246,6 +267,8 @@ page_alloc(struct Page **pp)
 
     ppage_temp = LIST_FIRST(&page_free_list);
     LIST_REMOVE(ppage_temp, pp_link);
+    ppage_temp->pp_link.le_next = NULL;
+    ppage_temp->pp_link.le_prev = NULL;
 
     /* Step 2: Initialize this page.
      * Hint: use `bzero`. */
