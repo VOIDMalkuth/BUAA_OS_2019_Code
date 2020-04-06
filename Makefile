@@ -16,26 +16,22 @@ link_script   := $(tools_dir)/scse0_3.lds
 
 modules		  := boot drivers init lib mm
 objects		  := $(boot_dir)/start.o			  \
-				 $(init_dir)/main.o			  \
-				 $(init_dir)/init.o			  \
+				 $(init_dir)/*.o			  \
 			   	 $(drivers_dir)/gxconsole/console.o \
 				 $(lib_dir)/*.o				  \
 				 $(mm_dir)/*.o
 
-.PHONY: all $(modules) run clean
+.PHONY: all $(modules) clean
 
 all: $(modules) vmlinux
 
 vmlinux: $(modules)
 	$(LD) -o $(vmlinux_elf) -N -T $(link_script) $(objects)
 
-$(modules):
+$(modules): 
 	$(MAKE) --directory=$@
 
-run: $(modules) vmlinux
-	cd gxemul && ./runVmlinux.sh
-
-clean:
+clean: 
 	for d in $(modules);	\
 		do					\
 			$(MAKE) --directory=$$d clean; \
