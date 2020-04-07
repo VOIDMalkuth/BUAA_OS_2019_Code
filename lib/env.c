@@ -97,15 +97,17 @@ env_init(void)
 {
     int i;
     /*Step 1: Initial env_free_list. */
-
+    LIST_INIT(&env_free_list);
 
     /*Step 2: Traverse the elements of 'envs' array,
      * set their status as free and insert them into the env_free_list.
      * Choose the correct loop order to finish the insertion.
      * Make sure, after the insertion, the order of envs in the list
      * should be the same as it in the envs array. */
-
-
+    for (i = NENV; i >= 0; i--) {
+        envs[i].env_status = ENV_FREE;
+        LIST_INSERT_HEAD(&env_free_list, &envs[i], env_link);
+    }
 }
 
 
