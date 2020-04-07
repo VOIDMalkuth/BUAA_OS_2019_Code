@@ -60,8 +60,11 @@ int envid2env(u_int envid, struct Env **penv, int checkperm)
     struct Env *e;
     /* Hint: If envid is zero, return curenv.*/
     /*Step 1: Assign value to e using envid. */
+    if (!envid) {
+        *penv = curenv;
+    }
 
-
+    e = &envs[envid & (0x3FF)];
 
     if (e->env_status == ENV_FREE || e->env_id != envid) {
         *penv = 0;
@@ -75,9 +78,9 @@ int envid2env(u_int envid, struct Env **penv, int checkperm)
      *     or an immediate child of curenv.
      *     If not, error! */
     /*     Step 2: Make a check according to checkperm. */
-
-
-
+    if (checkperm && e->env_id != curenv->env_id && e->env_parent_id != curenv->env_id) {
+        return -E_BAD_ENV;
+    }
 
     *penv = e;
     return 0;
