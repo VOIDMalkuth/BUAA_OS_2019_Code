@@ -101,7 +101,7 @@ env_init(void)
     int i;
     /*Step 1: Initial env_free_list. */
     LIST_INIT(&env_free_list);
-
+    
     /*Step 2: Traverse the elements of 'envs' array,
      * set their status as free and insert them into the env_free_list.
      * Choose the correct loop order to finish the insertion.
@@ -132,21 +132,21 @@ env_setup_vm(struct Env *e)
     /* Step 1: Allocate a page for the page directory
      * using a function you completed in the lab2 and add its pp_ref.
      * pgdir is the page directory of Env e, assign value for it. */
-    if (      ) {
+    if (page_alloc(&p) != 0) {
         panic("env_setup_vm - page alloc error\n");
         return r;
     }
-
+    pgdir = page2kva(p);
 
 
     /*Step 2: Zero pgdir's field before UTOP. */
-
+    bzero(pgdir, (UTOP >> 22) * sizeof(Pde));
 
 
 
 
     /*Step 3: Copy kernel's boot_pgdir to pgdir. */
-
+    bcopy(boot_pgdir + (UTOP >> 22), pgdir + (UTOP >> 22), ((0x100000000 >> 22) - (UTOP >> 22)) * sizeof(Pde));
     /* Hint:
      *  The VA space of all envs is identical above UTOP
      *  (except at UVPT, which we've set below).
@@ -422,28 +422,28 @@ env_run(struct Env *e)
 }
 void env_check()
 {
-        struct Env *temp, *pe, *pe0, *pe1, *pe2;
-        struct Env_list fl;
-        int re = 0;
-     // should be able to allocate three envs
+    struct Env *temp, *pe, *pe0, *pe1, *pe2;
+    struct Env_list fl;
+    int re = 0;
+    // should be able to allocate three envs
     pe0 = 0;
-        pe1 = 0;
-        pe2 = 0;
-        assert(env_alloc(&pe0, 0) == 0);
-        assert(env_alloc(&pe1, 0) == 0);
-        assert(env_alloc(&pe2, 0) == 0);
+    pe1 = 0;
+    pe2 = 0;
+    assert(env_alloc(&pe0, 0) == 0);
+    assert(env_alloc(&pe1, 0) == 0);
+    assert(env_alloc(&pe2, 0) == 0);
 
-        assert(pe0);
-        assert(pe1 && pe1 != pe0);
-        assert(pe2 && pe2 != pe1 && pe2 != pe0);
-
-     // temporarily steal the rest of the free envs
-     fl = env_free_list;
+    assert(pe0);
+    assert(pe1 && pe1 != pe0);
+    assert(pe2 && pe2 != pe1 && pe2 != pe0);
+     
+    // temporarily steal the rest of the free envs
+    fl = env_free_list;
     // now this env_free list must be empty!!!!
     LIST_INIT(&env_free_list);
 
     // should be no free memory
-     assert(env_alloc(&pe, 0) == -E_NO_FREE_ENV);
+    assert(env_alloc(&pe, 0) == -E_NO_FREE_ENV);
 
     // recover env_free_list
     env_free_list = fl;
