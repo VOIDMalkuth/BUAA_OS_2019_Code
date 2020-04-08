@@ -250,7 +250,7 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
     if (!r) {
         return -E_NO_MEM;
     }
-    r = page_insert((e->env_pgdir), p, ROUNDDOWN(va, BY2PG), PTE_R);
+    r = page_insert((env->env_pgdir), p, ROUNDDOWN(va, BY2PG), PTE_R);
     if (!r) {
         return -E_NO_MEM;
     }
@@ -262,7 +262,7 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
         if (!r) {
             return -E_NO_MEM;
         }
-        r = page_insert((e->env_pgdir), p, va + i, PTE_R);
+        r = page_insert((env->env_pgdir), p, va + i, PTE_R);
         if (!r) {
             return -E_NO_MEM;
         }
@@ -277,7 +277,7 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
         if (!r) {
             return -E_NO_MEM;
         }
-        r = page_insert((e->env_pgdir), p, va + i, PTE_R);
+        r = page_insert((env->env_pgdir), p, va + i, PTE_R);
         if (!r) {
             return -E_NO_MEM;
         }
@@ -314,14 +314,23 @@ load_icode(struct Env *e, u_char *binary, u_int size)
     u_long perm;
 
     /*Step 1: alloc a page. */
-
+    r = page_alloc(&p);
+    if (!r) {
+        return r;
+    }
 
     /*Step 2: Use appropriate perm to set initial stack for new Env. */
     /*Hint: Should the user-stack be writable? */
-
+    r = page_insert(e->env_pgdir, p, e->env_tf.regs[29], PTE_R);
+    if (!r) {
+        return r;
+    }
 
     /*Step 3:load the binary using elf loader. */
-
+    r = load_elf(binary, size, &entry_point, e, load_icode_mapper);
+    if (!r) {
+        return r;
+    }
 
     /*Step 4:Set CPU's PC register as appropriate value. */
     e->env_tf.pc = entry_point;
