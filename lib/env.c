@@ -242,16 +242,47 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
     u_long i;
     int r;
     u_long offset = va - ROUNDDOWN(va, BY2PG);
+    u_long tmpLength = 0;
 
     /*Step 1: load all content of bin into memory. */
-    for (i = 0; i < bin_size; i += BY2PG) {
-        /* Hint: You should alloc a new page. */
+    // load 1st part: may not align
+    r = page_alloc(&p);
+    if (!r) {
+        return -E_NO_MEM;
     }
+    r = page_insert((e->env_pgdir), p, ROUNDDOWN(va, BY2PG), PTE_R);
+    if (!r) {
+        return -E_NO_MEM;
+    }
+    bcopy(bin, page2kva(p) + offset, BY2PG - offset);
+
+    for (i = BY2PG - offset; i < bin_size; i += BY2PG) {
+        /* Hint: You should alloc a new page. */
+        r = page_alloc(&p);
+        if (!r) {
+            return -E_NO_MEM;
+        }
+        r = page_insert((e->env_pgdir), p, va + i, PTE_R);
+        if (!r) {
+            return -E_NO_MEM;
+        }
+        tmpLength = (i + BY2PG < bin_size) ? BY2PG : (bin_size - i);
+        bcopy(bin + i, page2kva(p), tmpLength);
+    }
+
     /*Step 2: alloc pages to reach `sgsize` when `bin_size` < `sgsize`.
     * hint: variable `i` has the value of `bin_size` now! */
     while (i < sgsize) {
-
-
+        r = page_alloc(&p);
+        if (!r) {
+            return -E_NO_MEM;
+        }
+        r = page_insert((e->env_pgdir), p, va + i, PTE_R);
+        if (!r) {
+            return -E_NO_MEM;
+        }
+        bzero(va + i, BY2PG);
+        i += BY2PG;
     }
     return 0;
 }
