@@ -208,7 +208,7 @@ env_alloc(struct Env **new, u_int parent_id)
 
     /*Step 4: Focus on initializing the sp register and cp0_status of env_tf field, located at this new Env. */
     e->env_tf.cp0_status = 0x10001004;
-    e->env_tf.regs[29] = 0x7f3fe000;
+    e->env_tf.regs[29] = USTACKTOP;
 
     /*Step 5: Remove the new Env from env_free_list. */
     LIST_REMOVE(e, env_link);
@@ -243,27 +243,28 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
     int r;
     u_long offset = va - ROUNDDOWN(va, BY2PG);
     u_long tmpLength = 0;
-
     /*Step 1: load all content of bin into memory. */
     // load 1st part: may not align
-    r = page_alloc(&p);
-    if (!r) {
-        return -E_NO_MEM;
+    if (bin_size != 0) {
+        r = page_alloc(&p);
+        if (r) {
+            return -E_NO_MEM;
+        }
+        r = page_insert((env->env_pgdir), p, ROUNDDOWN(va, BY2PG), PTE_R);
+        if (r) {
+            return -E_NO_MEM;
+        }
+        bcopy(bin, page2kva(p) + offset, BY2PG - offset);
     }
-    r = page_insert((env->env_pgdir), p, ROUNDDOWN(va, BY2PG), PTE_R);
-    if (!r) {
-        return -E_NO_MEM;
-    }
-    bcopy(bin, page2kva(p) + offset, BY2PG - offset);
-
+    
     for (i = BY2PG - offset; i < bin_size; i += BY2PG) {
         /* Hint: You should alloc a new page. */
         r = page_alloc(&p);
-        if (!r) {
+        if (r) {
             return -E_NO_MEM;
         }
         r = page_insert((env->env_pgdir), p, va + i, PTE_R);
-        if (!r) {
+        if (r) {
             return -E_NO_MEM;
         }
         tmpLength = (i + BY2PG < bin_size) ? BY2PG : (bin_size - i);
@@ -274,11 +275,11 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
     * hint: variable `i` has the value of `bin_size` now! */
     while (i < sgsize) {
         r = page_alloc(&p);
-        if (!r) {
+        if (r) {
             return -E_NO_MEM;
         }
         r = page_insert((env->env_pgdir), p, va + i, PTE_R);
-        if (!r) {
+        if (r) {
             return -E_NO_MEM;
         }
         bzero(va + i, BY2PG);
@@ -315,22 +316,13 @@ load_icode(struct Env *e, u_char *binary, u_int size)
 
     /*Step 1: alloc a page. */
     r = page_alloc(&p);
-    if (!r) {
-        return r;
-    }
 
     /*Step 2: Use appropriate perm to set initial stack for new Env. */
     /*Hint: Should the user-stack be writable? */
-    r = page_insert(e->env_pgdir, p, e->env_tf.regs[29], PTE_R);
-    if (!r) {
-        return r;
-    }
+    r = page_insert(e->env_pgdir, p, USTACKTOP - BY2PG, PTE_R);
 
     /*Step 3:load the binary using elf loader. */
     r = load_elf(binary, size, &entry_point, e, load_icode_mapper);
-    if (!r) {
-        return r;
-    }
 
     /*Step 4:Set CPU's PC register as appropriate value. */
     e->env_tf.pc = entry_point;
@@ -458,22 +450,31 @@ env_run(struct Env *e)
     /*Step 1: save register state of curenv. */
     /* Hint: if there is an environment running, you should do
     *  switch the context and save the registers. You can imitate env_destroy() 's behaviors.*/
-
+    if (curenv != NULL) {
+        struct Trapframe *old = (struct Trapframe *)(TIMESTACK - sizeof(struct Trapframe));
+        bcopy((void *)old, (void *)(&(curenv->env_tf)), sizeof(struct Trapframe));
+        curenv->env_tf.pc = curenv->env_tf.cp0_epc;
+    }
 
     /*Step 2: Set 'curenv' to the new environment. */
-
+    curenv = e;
 
     /*Step 3: Use lcontext() to switch to its address space. */
-
-
+    lcontext((int)(e->env_pgdir));
+    //printf("e->env_pgir = %lx\n", e->env_pgdir);
+    //int i = 0;
+    //for (i = 0; i < 500; i++) {
+    //    printf("e->env_pgir[%d] = %lx\n", i, e->env_pgdir[i]);
+    //}
     /*Step 4: Use env_pop_tf() to restore the environment's
      * environment   registers and return to user mode.
      *
      * Hint: You should use GET_ENV_ASID there. Think why?
      * (read <see mips run linux>, page 135-144)
      */
-
+    env_pop_tf(&(e->env_tf), GET_ENV_ASID(e->env_id));
 }
+
 void env_check()
 {
     struct Env *temp, *pe, *pe0, *pe1, *pe2;
