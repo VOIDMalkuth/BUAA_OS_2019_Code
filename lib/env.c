@@ -133,7 +133,7 @@ int find_child(u_int envid, struct Env *targetEnvList[], int idx) {
             targetEnvList[idx++] = &envs[i];
 
             // is All child Runnable?
-            int tmp = find_child(envs[i].env_parent_id, targetEnvList, idx);
+            int tmp = find_child(envs[i].env_id, targetEnvList, idx);
             if (tmp == -1) {
                 return -1;
             }
