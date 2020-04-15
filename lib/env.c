@@ -59,6 +59,45 @@ void output_env_info(int envid) {
     return;
 }
 
+void init_envid() {
+    int i = 0;
+    for (i = 0; i < NENV; i++) {
+        if (envs[i].env_status == ENV_RUNNABLE) {
+            envs[i].env_id = newmkenvid(&envs[i], envs[i].env_pri);
+        }
+    }
+    return;
+}
+
+int newenvid2env(u_int envid, struct Env **penv, int checkperm) {
+    /*Step 1: Assign value to e using envid. */
+    if (!envid) {
+        *penv = curenv;
+    }
+
+    struct Env *e = &envs[envid & (0x3FF)];
+
+    if (e->env_status == ENV_FREE || e->env_id != envid) {
+        *penv = 0;
+        return -E_BAD_ENV;
+    }
+    /*     Hint:
+    *     Check that the calling env has enough permissions
+    *     to manipulate the specified env.
+    *     If checkperm is set, the specified env
+    *     must be either curenv
+    *     or an immediate child of curenv.
+    *     If not, error! */
+    /*     Step 2: Make a check according to checkperm. */
+    if (checkperm && e->env_id != curenv->env_id && e->env_parent_id != curenv->env_id) {
+        *penv = 0;
+        return -E_BAD_ENV;
+    }
+
+    *penv = e;
+    return 0;
+}
+
 /* Overview:
  *  Converts an envid to an env pointer.
  *  If envid is 0 , set *penv = curenv;otherwise set *penv = envs[ENVX(envid)];

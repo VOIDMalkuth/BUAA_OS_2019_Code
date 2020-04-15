@@ -62,6 +62,8 @@ void env_run(struct Env *e);
 // lab3 extra
 u_int newmkenvid(struct Env *e, int pri);
 void output_env_info(int envid);
+void init_envid();
+int newenvid2env(u_int envid, struct Env **penv, int checkperm);
 
 // for the grading script
 #define ENV_CREATE2(x, y) \
