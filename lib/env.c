@@ -19,27 +19,7 @@ extern Pde *boot_pgdir;
 extern char *KERNEL_SP;
 
 
-/* Overview:
- *  This function is for making an unique ID for every env.
- *
- * Pre-Condition:
- *  Env e exists.
- *
- * Post-Condition:
- *  return e's envid on success.
- */
-
-u_int mkenvid(struct Env *e)
-{
-    static u_long next_env_id = 0;
-
-    /*Hint: lower bits of envid hold e's position in the envs array. */
-    u_int idx = e - envs;
-
-    /*Hint:  high bits of envid hold an increasing number. */
-    return (++next_env_id << (1 + LOG2NENV)) | idx;
-}
-
+/* ======= Lab-3-Extra Basic ======= */
 u_int newmkenvid(struct Env *e, int pri) {
     static u_long next_new_env_id = 0;
 
@@ -96,6 +76,67 @@ int newenvid2env(u_int envid, struct Env **penv, int checkperm) {
 
     *penv = e;
     return 0;
+}
+
+/* ======= Lab-3-Extra Advacned ======= */
+int findRoot(struct Env *nowEnv) {
+    struct Env *e = nowEnv;
+    int r = 0;
+
+    int env_parent_id = e->env_parent_id;
+    while (env_parent_id != 0) {
+        r = envid2env(env_parent_id, &e, 0);
+        if (r < 0 || e == NULL) {
+            return -2;
+        }
+        env_parent_id = e->env_parent_id;
+    }
+    return e->env_id;
+}
+
+int check_same_root(u_int envid1, u_int envid2) {
+    struct Env *env1, *env2;
+    int r;
+    r = envid2env(envid1, &env1, 0);
+    if (r < 0 || env1 == NULL) {
+        return -2;
+    }
+    r = envid2env(envid2, &env2, 0);
+    if (r < 0 || env2 == NULL) {
+        return -2;
+    }
+
+    if (env1->env_status == ENV_NOT_RUNNABLE || env2->env_status == ENV_NOT_RUNNABLE) {
+        printf("something is wrong!\n");
+    }
+
+    int root1 = findRoot(env1);
+    int root2 = findRoot(env2);
+
+    if (root1 != -2 && root2 != -2) {
+        return (root1 == root2);
+    }
+
+    return -2;
+}
+
+
+/* Overview:
+ *  This function is for making an unique ID for every env.
+ *
+ * Pre-Condition:
+ *  Env e exists.
+ *
+ * Post-Condition:
+ *  return e's envid on success.
+ */
+u_int mkenvid(struct Env *e)
+{
+    static u_long next_env_id = 0;
+    /*Hint: lower bits of envid hold e's position in the envs array. */
+    u_int idx = e - envs;
+    /*Hint:  high bits of envid hold an increasing number. */
+    return (++next_env_id << (1 + LOG2NENV)) | idx;
 }
 
 /* Overview:
