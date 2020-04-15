@@ -120,6 +120,65 @@ int check_same_root(u_int envid1, u_int envid2) {
     return -2;
 }
 
+int find_child(u_int envid, struct Env *targetEnvList[], int idx) {
+    int i = 0;
+    for (i = 0; i < NENV; i++) {
+        if (envs[i].env_parent_id == envid) {
+            // If not Runnable, return -1
+            if (envs[i].env_status == ENV_NOT_RUNNABLE) {
+                return -1;
+            }
+
+            targetEnvList[idx++] = &envs[i];
+
+            // is All child Runnable?
+            int tmp = find_child(envs[i].env_parent_id, targetEnvList, idx);
+            if (tmp == -1) {
+                return -1;
+            }
+
+            idx = tmp;
+        }
+    }
+
+    return idx;
+}
+
+void kill_all(u_int envid) {
+    struct Env *e = NULL;
+    int r = envid2env(envid, &e, 0);
+    if (r < 0 || e == NULL) {
+        printf("something is wrong!\n");
+        return;
+    }
+    if (e->env_status == ENV_NOT_RUNNABLE) {
+        printf("something is wrong!\n");
+        return;
+    }
+
+    struct Env *targetEnvList[NENV + 1];
+    int i = 0;
+    for (i = 0; i < NENV + 1; i++) {
+        targetEnvList[i] = NULL;
+    }
+
+    int idx = 0;
+    idx = find_child(envid, targetEnvList, idx);
+
+    if (idx == -1) {
+        printf("something is wrong!\n");
+        return;
+    }
+
+    e->env_status = ENV_NOT_RUNNABLE;
+    for (i = 0; i < idx; i++) {
+        targetEnvList[i]->env_status = ENV_NOT_RUNNABLE;
+    }
+
+    return;
+}
+
+/*======= Original Lab-3 =======*/
 
 /* Overview:
  *  This function is for making an unique ID for every env.
