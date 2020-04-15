@@ -108,6 +108,7 @@ int check_same_root(u_int envid1, u_int envid2) {
 
     if (env1->env_status == ENV_NOT_RUNNABLE || env2->env_status == ENV_NOT_RUNNABLE) {
         printf("something is wrong!\n");
+        return -1;
     }
 
     int root1 = findRoot(env1);
