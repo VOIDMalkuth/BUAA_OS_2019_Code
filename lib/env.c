@@ -40,6 +40,25 @@ u_int mkenvid(struct Env *e)
     return (++next_env_id << (1 + LOG2NENV)) | idx;
 }
 
+u_int newmkenvid(struct Env *e, int pri) {
+    static u_long next_new_env_id = 0;
+
+    u_int idx = e - envs;
+
+    u_int envid = ((pri & 0x0F) << (1 + LOG2NENV)) | idx;
+    envid = envid | (++next_new_env_id << (1 + 4 + LOG2NENV));
+
+    return envid;
+}
+
+void output_env_info(int envid) {
+    u_int no = (envid >> (1 + 4 + LOG2NENV));
+    u_int env_index = envid & 0x03ff;
+    int env_pri = (envid >> (1 + LOG2NENV)) & 0x0f;
+    printf("no=%d,env_index=%d,env_pri=%d\n", no, env_index, env_pri);
+    return;
+}
+
 /* Overview:
  *  Converts an envid to an env pointer.
  *  If envid is 0 , set *penv = curenv;otherwise set *penv = envs[ENVX(envid)];
