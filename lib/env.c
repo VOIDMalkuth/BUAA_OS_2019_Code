@@ -176,7 +176,7 @@ void kill_all(u_int envid) {
     }
 
     int idx = 0;
-    idx = find_child(envid, targetEnvList, idx);
+    idx = find_child(rootEnvid, targetEnvList, idx);
 
     if (idx == -1) {
         printf("something is wrong!\n");
