@@ -157,6 +157,18 @@ void kill_all(u_int envid) {
         return;
     }
 
+    u_int rootEnvid = findRoot(e);
+    // e is rootEnv from now on
+    r = envid2env(rootEnvid, &e, 0);
+    if (r < 0 || e == NULL) {
+        printf("something is wrong!\n");
+        return;
+    }
+    if (e->env_status == ENV_NOT_RUNNABLE) {
+        printf("something is wrong!\n");
+        return;
+    }
+
     struct Env *targetEnvList[NENV + 1];
     int i = 0;
     for (i = 0; i < NENV + 1; i++) {
