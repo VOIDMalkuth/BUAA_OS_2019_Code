@@ -1,6 +1,6 @@
 // pageReplace.cpp
 #include "pageReplace.h" // 测评需求，请务必包含该头文件
-#define MAX_PHY_PAGE 64
+#define MAX_PHY_PAGE 8
 #define MAX_PAGE 12
 #define get_Page(x) (x >> MAX_PAGE)
 
