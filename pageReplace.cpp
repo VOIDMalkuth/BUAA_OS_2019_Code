@@ -4,8 +4,6 @@
 #define MAX_PAGE 12
 #define get_Page(x) (x >> MAX_PAGE)
 
-#define MAX_SINGLEIN 32
-
 int find(long *array, int n, long val);
 
 inline int find(long *array, int n, long val)
@@ -20,7 +18,7 @@ inline int find(long *array, int n, long val)
     return -1;
 }
 
-int helpArray[MAX_PHY_PAGE + 1];
+int helpArray[MAX_PHY_PAGE + 1][2];
 
 void pageReplace(long *physic_memery, long nwAdd)
 {
@@ -29,28 +27,25 @@ void pageReplace(long *physic_memery, long nwAdd)
     int frameVisited = find(physic_memery, MAX_PHY_PAGE, pg);
     if (frameVisited != -1)
     {
-        helpArray[frameVisited] = cursor;
-        cursor++;
+        helpArray[frameVisited][0] = cursor++;
+        helpArray[frameVisited][1] += 1;
         return;
     }
     // find min in helpArray
     int swapIndex = 0;
-    int swapDistance = helpArray[0];
+    int swapDistance = helpArray[0][0] + helpArray[0][1] * 2;
     for (int i = 0; i < MAX_PHY_PAGE; i++)
     {
-        if (helpArray[i] < swapDistance)
+        int dist = helpArray[i][0] + helpArray[i][1] * 2;
+        if (dist < swapDistance)
         {
             swapIndex = i;
-            swapDistance = helpArray[i];
+            swapDistance = dist;
         }
     }
-
-    helpArray[swapIndex] = cursor++;
+    helpArray[swapIndex][0] = cursor++;
+    helpArray[swapIndex][1] = 0;
     physic_memery[swapIndex] = pg;
-    if (find(physic_memery, MAX_PHY_PAGE, pg + 1) == -1) {
-        helpArray[swapIndex + MAX_SINGLEIN] = cursor++;
-        physic_memery[swapIndex + MAX_SINGLEIN] = pg + 1;         
-    }
 
     return;
 }
