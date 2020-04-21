@@ -4,27 +4,46 @@
 #define MAX_PAGE 12
 #define get_Page(x) (x >> MAX_PAGE)
 
+int find(long *array, int n, long val);
+
+inline int find(long *array, int n, long val)
+{
+    for (int i = 0; i < n; i++)
+    {
+        if (array[i] == val)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int helpArray[MAX_PHY_PAGE + 1];
+
 void pageReplace(long *physic_memery, long nwAdd)
 {
-    int flag = 0;
-    static int clock = 0;
+    static int cursor = 0;
+    int pg = get_Page(nwAdd);
+    int frameVisited = find(physic_memery, MAX_PHY_PAGE, pg);
+    if (frameVisited != -1)
+    {
+        helpArray[frameVisited] = cursor;
+        cursor++;
+        return;
+    }
+    // find min in helpArray
+    int swapIndex = 0;
+    int swapDistance = helpArray[0];
     for (int i = 0; i < MAX_PHY_PAGE; i++)
     {
-        if ((nwAdd >> MAX_PAGE) == physic_memery[i])
+        if (helpArray[i] < swapDistance)
         {
-            return;
+            swapIndex = i;
+            swapDistance = helpArray[i];
         }
     }
-    for (int i = 0; i < MAX_PHY_PAGE; i++)
-    {
-        if (physic_memery[i] == 0)
-        { //初始物理页框内容全部为0
-            physic_memery[i] = get_Page(nwAdd);
-            flag = 1;
-            break;
-        }
-    }
-    if (flag == 0)
-        physic_memery[(clock++) % MAX_PHY_PAGE] =
-            get_Page(nwAdd);
+    helpArray[swapIndex] = cursor;
+    physic_memery[swapIndex] = pg;
+
+    return;
 }
