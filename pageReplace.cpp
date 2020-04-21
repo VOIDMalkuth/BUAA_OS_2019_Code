@@ -33,10 +33,10 @@ void pageReplace(long *physic_memery, long nwAdd)
     }
     // find min in helpArray
     int swapIndex = 0;
-    int swapDistance = helpArray[0][0] + helpArray[0][1] * 2;
+    int swapDistance = helpArray[0][0] + helpArray[0][1];
     for (int i = 0; i < MAX_PHY_PAGE; i++)
     {
-        int dist = helpArray[i][0] + helpArray[i][1] * 2;
+        int dist = helpArray[i][0] + helpArray[i][1];
         if (dist < swapDistance)
         {
             swapIndex = i;
@@ -49,3 +49,4 @@ void pageReplace(long *physic_memery, long nwAdd)
 
     return;
 }
+
