@@ -42,7 +42,7 @@ void pageReplace(long *physic_memery, long nwAdd)
             swapDistance = helpArray[i];
         }
     }
-    helpArray[swapIndex] = cursor;
+    helpArray[swapIndex] = cursor++;
     physic_memery[swapIndex] = pg;
 
     return;
