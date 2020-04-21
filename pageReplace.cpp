@@ -18,7 +18,7 @@ inline int find(long *array, int n, long val)
     return -1;
 }
 
-int helpArray[MAX_PHY_PAGE + 1][2];
+int helpArray[MAX_PHY_PAGE + 1];
 
 void pageReplace(long *physic_memery, long nwAdd)
 {
@@ -27,26 +27,23 @@ void pageReplace(long *physic_memery, long nwAdd)
     int frameVisited = find(physic_memery, MAX_PHY_PAGE, pg);
     if (frameVisited != -1)
     {
-        helpArray[frameVisited][0] = cursor++;
-        helpArray[frameVisited][1] += 1;
+        helpArray[frameVisited] = cursor;
+        cursor++;
         return;
     }
     // find min in helpArray
     int swapIndex = 0;
-    int swapDistance = helpArray[0][0] + helpArray[0][1];
+    int swapDistance = helpArray[0];
     for (int i = 0; i < MAX_PHY_PAGE; i++)
     {
-        int dist = helpArray[i][0] + helpArray[i][1];
-        if (dist < swapDistance)
+        if (helpArray[i] < swapDistance)
         {
             swapIndex = i;
-            swapDistance = dist;
+            swapDistance = helpArray[i];
         }
     }
-    helpArray[swapIndex][0] = cursor++;
-    helpArray[swapIndex][1] = 0;
+    helpArray[swapIndex] = cursor++;
     physic_memery[swapIndex] = pg;
 
     return;
 }
-
