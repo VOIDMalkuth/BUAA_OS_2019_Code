@@ -22,7 +22,7 @@ int helpArray[MAX_PHY_PAGE + 1];
 
 void pageReplace(long *physic_memery, long nwAdd)
 {
-    static int cursor = 0;
+    static int cursor = 1;
     int pg = get_Page(nwAdd);
     int frameVisited = find(physic_memery, MAX_PHY_PAGE, pg);
     if (frameVisited != -1)
