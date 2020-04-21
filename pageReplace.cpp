@@ -1,8 +1,9 @@
 // pageReplace.cpp
 #include "pageReplace.h" // 测评需求，请务必包含该头文件
-#define MAX_PHY_PAGE 8   // 这里只使用了8个物理页框
+#define MAX_PHY_PAGE 64
 #define MAX_PAGE 12
 #define get_Page(x) (x >> MAX_PAGE)
+
 void pageReplace(long *physic_memery, long nwAdd)
 {
     int flag = 0;
