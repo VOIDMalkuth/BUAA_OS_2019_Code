@@ -214,8 +214,8 @@ page_init(void)
     LIST_INSERT_HEAD(&page_free_list, &pages[i], pp_link);
     pages[i].pp_ref = 0;
     for (i = i + 1; i < npage; i++) {
-        //LIST_INSERT_AFTER(&pages[i - 1], &pages[i], pp_link);
-        LIST_INSERT_HEAD(&page_free_list, &pages[i], pp_link);
+        LIST_INSERT_AFTER(&pages[i - 1], &pages[i], pp_link);
+        //LIST_INSERT_HEAD(&page_free_list, &pages[i], pp_link);
         pages[i].pp_ref = 0;
     }
 }
