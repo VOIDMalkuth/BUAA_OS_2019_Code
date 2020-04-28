@@ -33,7 +33,7 @@ void sched_yield(void)
     if (count == 0 && e != NULL) {
         LIST_REMOVE(e, env_sched_link);
         LIST_INSERT_TAIL(&env_sched_list[1 - point], e, env_sched_link);
-    } else {
+    } else if (e != NULL) {
         count--;
         env_run(e);
     }
