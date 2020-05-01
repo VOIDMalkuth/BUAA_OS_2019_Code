@@ -7,6 +7,7 @@
 
 extern char *KERNEL_SP;
 extern struct Env *curenv;
+extern int syscall_sched_forceReSchedule;
 
 /* Overview:
  * 	This function is used to print a character on screen.
@@ -64,6 +65,11 @@ u_int sys_getenvid(void)
 /*** exercise 4.6 ***/
 void sys_yield(void)
 {
+    bcopy((void *)KERNEL_SP - sizeof(struct Trapframe),
+            (void *)TIMESTACK - sizeof(struct Trapframe),
+            sizeof(struct Trapframe));
+	syscall_sched_forceReSchedule = 1;
+	sched_yield();
 }
 
 /* Overview:
@@ -142,8 +148,30 @@ int sys_mem_alloc(int sysno, u_int envid, u_int va, u_int perm)
 	struct Env *env;
 	struct Page *ppage;
 	int ret;
-	ret = 0;
+    
+    u_int round_va = ROUNDDOWN(va, BY2PG);
 
+	if ((perm & PTE_V == 0) || (perm & PTE_COW != 0)) {
+		return -E_INVAL;
+	}
+
+	if (round_va >= UTOP) {
+		return -E_INVAL;
+	}
+
+	ret = envid2env(envid, &env, 1);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = page_alloc(&ppage);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = page_insert(env->env_pgdir, ppage, round_va, perm);
+	
+	return ret;
 }
 
 /* Overview:
@@ -168,7 +196,7 @@ int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 	struct Env *srcenv;
 	struct Env *dstenv;
 	struct Page *ppage;
-	Pte *ppte;
+	Pte *pte;
 
 	ppage = NULL;
 	ret = 0;
@@ -176,6 +204,29 @@ int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 	round_dstva = ROUNDDOWN(dstva, BY2PG);
 
     //your code here
+    if (perm & PTE_V == 0) {
+		return -E_INVAL;
+	}
+
+	if (round_srcva >= UTOP || round_dstva >= UTOP) {
+		return -E_INVAL;
+	}
+
+	ret = envid2env(srcid, &srcenv, 0);
+	if (ret < 0) {
+		return ret;
+	}
+	ret = envid2env(dstid, &dstenv, 0);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ppage = page_lookup(srcenv->env_pgdir, round_srcva, &pte);
+	if (ppage == NULL || ((*pte) & PTE_V == NULL)) {
+		return -E_INVAL;
+	}
+
+	ret = page_insert(dstenv->env_pgdir, ppage, round_dstva, perm);
 
 	return ret;
 }
@@ -193,11 +244,23 @@ int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 int sys_mem_unmap(int sysno, u_int envid, u_int va)
 {
 	// Your code here.
-	int ret;
+    int ret = 0;
 	struct Env *env;
 
+	u_int round_va = ROUNDDOWN(va, BY2PG);
+
+	if (round_va >= UTOP) {
+		return -E_INVAL;
+	}
+
+	ret = envid2env(envid, &env, 0);
+	if (ret < 0) {
+		return ret;
+	}
+
+	page_remove(env->env_pgdir, round_va);
+
 	return ret;
-	//	panic("sys_mem_unmap not implemented");
 }
 
 /* Overview:

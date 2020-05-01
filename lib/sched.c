@@ -2,6 +2,8 @@
 #include <pmap.h>
 #include <printf.h>
 
+int syscall_sched_forceReSchedule = 0;
+
 /* Overview:
  *  Implement simple round-robin scheduling.
  *
@@ -29,6 +31,11 @@ void sched_yield(void)
      *  functions or macros below may be used (not all):
      *  LIST_INSERT_TAIL, LIST_REMOVE, LIST_FIRST, LIST_EMPTY
      */
+
+    if (syscall_sched_forceReSchedule) {
+        count = 0;
+        syscall_sched_forceReSchedule = 0;
+    }
 
     struct Env *e = curenv;
     if (count != 0 && e != NULL && e->env_status == ENV_RUNNABLE) {
