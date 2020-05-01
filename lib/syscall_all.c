@@ -359,6 +359,15 @@ void sys_panic(int sysno, char *msg)
 /*** exercise 4.7 ***/
 void sys_ipc_recv(int sysno, u_int dstva)
 {
+    int isValid = (dstva < UTOP) || (dstva == NULL);
+	if (!isValid) {
+		return;
+	}
+	curenv->env_ipc_recving = 1;
+	curenv->env_ipc_dstva = dstva;
+	curenv->env_status = ENV_NOT_RUNNABLE;
+
+    sys_yield();
 }
 
 /* Overview:
@@ -382,10 +391,38 @@ void sys_ipc_recv(int sysno, u_int dstva)
 int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 					 u_int perm)
 {
-
-	int r;
+    int r;
 	struct Env *e;
 	struct Page *p;
+
+	r = envid2env(envid, &e, 0);
+	if (r < 0) {
+		return r;
+	}
+
+	if (!e->env_ipc_recving) {
+		return -E_IPC_NOT_RECV;
+	}
+
+	if (srcva != NULL) {
+		Pte *pte;
+		u_int round_srcva = ROUNDDOWN(srcva, BY2PG);
+		p = page_lookup(curenv->env_pgdir, round_srcva, &pte);
+		if (p == NULL || ((*pte) & PTE_V == NULL)) {
+			return -E_INVAL;
+		}
+		u_int round_dstva = ROUNDDOWN(e->env_ipc_dstva, BY2PG);
+		r = page_insert(e->env_pgdir, p, round_dstva, perm);
+		if (r < 0) {
+			return r;
+		}
+		e->env_ipc_perm = perm;
+	}
+
+	e->env_ipc_value = value;
+	e->env_ipc_from = curenv->env_id;
+	e->env_ipc_recving = 0;
+	e->env_status = ENV_RUNNABLE;
 
 	return 0;
 }
