@@ -159,7 +159,7 @@ int sys_mem_alloc(int sysno, u_int envid, u_int va, u_int perm)
 		return -E_INVAL;
 	}
 
-	ret = envid2env(envid, &env, 1);
+	ret = envid2env(envid, &env, 0);
 	if (ret < 0) {
 		return ret;
 	}
