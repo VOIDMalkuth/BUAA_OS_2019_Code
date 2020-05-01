@@ -151,7 +151,7 @@ int sys_mem_alloc(int sysno, u_int envid, u_int va, u_int perm)
     
     u_int round_va = ROUNDDOWN(va, BY2PG);
 
-	if ((perm & PTE_V == 0) || (perm & PTE_COW != 0)) {
+	if ((perm & PTE_V) == 0 || (perm & PTE_COW) != 0) {
 		return -E_INVAL;
 	}
 
@@ -204,7 +204,7 @@ int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 	round_dstva = ROUNDDOWN(dstva, BY2PG);
 
     //your code here
-    if (perm & PTE_V == 0) {
+    if ((perm & PTE_V) == 0) {
 		return -E_INVAL;
 	}
 
@@ -222,7 +222,7 @@ int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 	}
 
 	ppage = page_lookup(srcenv->env_pgdir, round_srcva, &pte);
-	if (ppage == NULL || ((*pte) & PTE_V == NULL)) {
+	if (ppage == NULL || ((*pte) & PTE_V) == NULL) {
 		return -E_INVAL;
 	}
 
@@ -408,7 +408,7 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 		Pte *pte;
 		u_int round_srcva = ROUNDDOWN(srcva, BY2PG);
 		p = page_lookup(curenv->env_pgdir, round_srcva, &pte);
-		if (p == NULL || ((*pte) & PTE_V == NULL)) {
+		if (p == NULL || ((*pte) & PTE_V) == NULL) {
 			return -E_INVAL;
 		}
 		u_int round_dstva = ROUNDDOWN(e->env_ipc_dstva, BY2PG);
