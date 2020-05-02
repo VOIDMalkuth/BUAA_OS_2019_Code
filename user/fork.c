@@ -189,7 +189,6 @@ fork(void)
     //The parent installs pgfault using set_pgfault_handler
 	set_pgfault_handler(pgfault);
 	//alloc a new alloc
-    writef("%d asked fork\n", env->env_id);
     newenvid = syscall_env_alloc();
 
 	if (newenvid < 0) {
@@ -197,7 +196,6 @@ fork(void)
 	}
 
 	if (newenvid != 0) {
-		writef("parent newenvid: %d\n", newenvid);
         for (i = 0; i < VPN(USTACKTOP); i++) {
 			if ((((Pde *)(*vpd))[(i >> 10)] & PTE_V) != 0 && (((Pte *)(*vpt))[i] & PTE_V) != 0) {
                 duppage(newenvid, i);
@@ -215,17 +213,14 @@ fork(void)
 		if (i < 0) {
 			user_panic("Error in setting child's status\n");
 		}
-        writef("PArent %d returning\n", env->env_id);
     }
 	else
 	{
-        writef("child newenvid: %d\n", newenvid);
 		// child
 		int envid;
 		envid = syscall_getenvid();
 		envid = ENVX(envid);
 		env = &envs[envid];
-	    writef("Child returning with envid=%d\n", env->env_id);
     }
 
 	return newenvid;
