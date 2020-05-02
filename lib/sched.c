@@ -36,7 +36,7 @@ void sched_yield(void)
         count = 0;
         syscall_sched_forceReSchedule = 0;
     }
-
+    
     struct Env *e = curenv;
     if (count != 0 && e != NULL && e->env_status == ENV_RUNNABLE) {
         count--;
@@ -75,6 +75,5 @@ void sched_yield(void)
     assert(e->env_status == ENV_RUNNABLE);
 
     count = e->env_pri - 1;
-    
     env_run(e);
 }

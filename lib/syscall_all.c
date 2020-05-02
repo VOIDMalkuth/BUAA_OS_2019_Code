@@ -119,9 +119,15 @@ int sys_set_pgfault_handler(int sysno, u_int envid, u_int func, u_int xstacktop)
 	struct Env *env;
 	int ret;
 
+    ret = envid2env(envid, &env, 1);
+	if (ret < 0) {
+		return ret;
+	}
+
+	env->env_pgfault_handler = func;
+	env->env_xstacktop = xstacktop;
 
 	return 0;
-	//	panic("sys_set_pgfault_handler not implemented");
 }
 
 /* Overview:
@@ -152,7 +158,7 @@ int sys_mem_alloc(int sysno, u_int envid, u_int va, u_int perm)
     u_int round_va = ROUNDDOWN(va, BY2PG);
 
 	if ((perm & PTE_V) == 0 || (perm & PTE_COW) != 0) {
-		return -E_INVAL;
+        return -E_INVAL;
 	}
 
 	if (round_va >= UTOP) {
@@ -286,7 +292,6 @@ int sys_env_alloc(void)
 	if (r < 0) {
 		return r;
 	}
-
 	bcopy((void *)KERNEL_SP - sizeof(struct Trapframe),
             (void *)(&(e->env_tf)),
             sizeof(struct Trapframe));
@@ -294,8 +299,9 @@ int sys_env_alloc(void)
 	e->env_status = ENV_NOT_RUNNABLE;
 	e->env_tf.regs[2] = 0;
 	e->env_pri = curenv->env_pri;
-
-	return e->env_id;
+    e->env_tf.pc = e->env_tf.cp0_epc;
+    
+    return e->env_id;
 }
 
 /* Overview:
@@ -317,8 +323,24 @@ int sys_set_env_status(int sysno, u_int envid, u_int status)
 	struct Env *env;
 	int ret;
 
+    if (status != ENV_RUNNABLE && status != ENV_NOT_RUNNABLE && status != ENV_FREE) {
+		return -E_INVAL;
+	}
+
+	ret = envid2env(envid, &env, 1);
+	if (ret < 0) {
+		return -E_INVAL;
+	}
+
+	env->env_status = status;
+	
+    if (status == ENV_RUNNABLE) {
+        LIST_INSERT_HEAD(&env_sched_list[0], env, env_sched_link);
+    } else if (status == ENV_FREE) {
+		env_destroy(env);
+	}
+
 	return 0;
-	//	panic("sys_env_set_status not implemented");
 }
 
 /* Overview:

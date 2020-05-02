@@ -82,17 +82,33 @@ void user_bzero(void *v, u_int n)
 static void
 pgfault(u_int va)
 {
-	u_int *tmp;
+    u_int tmp = UTOP - 2 * BY2PG;
 	//	writef("fork.c:pgfault():\t va:%x\n",va);
-    
-    //map the new page at a temporary place
 
+	u_int perm = ((Pte *)(*vpt))[VPN(va)] & 0xfff;
+
+	if ((perm & PTE_COW) == 0) {
+		user_panic("Not a COW page\n");
+	}
+
+	//map the new page at a temporary place
+	u_int newPerm = (perm | PTE_R | PTE_V) & (~PTE_COW);
+	int r = syscall_mem_alloc(0, tmp, newPerm);
+	if (r < 0) {
+		user_panic("Page alloc failed\n");
+	}
 	//copy the content
-	
-    //map the page on the appropriate place
-	
-    //unmap the temporary place
-	
+	user_bcopy(ROUNDDOWN(va, BY2PG), tmp, BY2PG);
+	//map the page on the appropriate place
+	r = syscall_mem_map(0, tmp, 0, va, newPerm);
+	if (r < 0) {
+		user_panic("Map to va failed\n");
+	}
+	//unmap the temporary place
+	r = syscall_mem_unmap(0, tmp);
+	if (r < 0) {
+		user_panic("Unmap failed\n");
+	}	
 }
 
 /* Overview:
@@ -115,10 +131,39 @@ pgfault(u_int va)
 static void
 duppage(u_int envid, u_int pn)
 {
-	u_int addr;
+    u_int addr;
 	u_int perm;
 
-	//	user_panic("duppage not implemented");
+	addr = pn * BY2PG;
+
+	perm = (((Pte *) (*vpt))[pn]) & 0xfff;
+
+	int r = 0;
+	if ((perm & PTE_R) == 0) {
+		r = syscall_mem_map(0, addr, envid, addr, perm);
+		if (r < 0) {
+			user_panic("ERROR in readonly map\n");
+		}
+	} else if ((perm & PTE_LIBRARY) != 0) {
+		syscall_mem_map(0, addr, envid, addr, perm);
+		if (r < 0) {
+			user_panic("ERROR in libaray map\n");
+		}
+	} else if ((perm & PTE_COW) != 0) {
+		syscall_mem_map(0, addr, envid, addr, perm);
+		if (r < 0) {
+			user_panic("ERROR in already COW map\n");
+		}
+	} else {
+		syscall_mem_map(0, addr, envid, addr, perm | PTE_COW);
+		if (r < 0) {
+			user_panic("ERROR in map to child map\n");
+		}
+		syscall_mem_map(0, addr, 0, addr, perm | PTE_COW);
+		if (r < 0) {
+			user_panic("ERROR in map to self map\n");
+		}
+	}
 }
 
 /* Overview:
@@ -141,11 +186,47 @@ fork(void)
 	extern struct Env *env;
 	u_int i;
 
-
-	//The parent installs pgfault using set_pgfault_handler
-
+    //The parent installs pgfault using set_pgfault_handler
+	set_pgfault_handler(pgfault);
 	//alloc a new alloc
+    writef("%d asked fork\n", env->env_id);
+    newenvid = syscall_env_alloc();
 
+	if (newenvid < 0) {
+		return newenvid;
+	}
+
+	if (newenvid != 0) {
+		writef("parent newenvid: %d\n", newenvid);
+        for (i = 0; i < VPN(USTACKTOP); i++) {
+			if ((((Pde *)(*vpd))[(i >> 10)] & PTE_V) != 0 && (((Pte *)(*vpt))[i] & PTE_V) != 0) {
+                duppage(newenvid, i);
+            }
+        }
+		i = syscall_mem_alloc(newenvid, UXSTACKTOP - BY2PG, PTE_V | PTE_R);
+		if (i < 0) {
+			user_panic("Error in allocing uxstack\n");
+		}
+		i = syscall_set_pgfault_handler(newenvid, __asm_pgfault_handler, UXSTACKTOP);
+		if (i < 0) {
+			user_panic("Error in setting pgfault_handler\n");
+		}
+		i = syscall_set_env_status(newenvid, ENV_RUNNABLE);
+		if (i < 0) {
+			user_panic("Error in setting child's status\n");
+		}
+        writef("PArent %d returning\n", env->env_id);
+    }
+	else
+	{
+        writef("child newenvid: %d\n", newenvid);
+		// child
+		int envid;
+		envid = syscall_getenvid();
+		envid = ENVX(envid);
+		env = &envs[envid];
+	    writef("Child returning with envid=%d\n", env->env_id);
+    }
 
 	return newenvid;
 }
