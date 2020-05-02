@@ -62,6 +62,7 @@ int envid2env(u_int envid, struct Env **penv, int checkperm)
     /*Step 1: Assign value to e using envid. */
     if (!envid) {
         *penv = curenv;
+        return 0;
     }
 
     e = &envs[envid & (0x3FF)];
