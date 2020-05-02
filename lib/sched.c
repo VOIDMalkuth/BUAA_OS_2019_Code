@@ -67,9 +67,8 @@ void sched_yield(void)
         }
     } while (e != NULL && e->env_status != ENV_RUNNABLE);
 
-    while (LIST_EMPTY(&env_sched_list[0]) && LIST_EMPTY(&env_sched_list[1])) {
-        ;
-        //panic("Empty Schedule List");
+    if (LIST_EMPTY(&env_sched_list[0]) && LIST_EMPTY(&env_sched_list[1])) {
+        panic("Empty Schedule List");
     }
 
     assert(e != NULL);
