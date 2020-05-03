@@ -278,6 +278,7 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
 
     /*Step 2: alloc pages to reach `sgsize` when `bin_size` < `sgsize`.
     * hint: variable `i` has the value of `bin_size` now! */
+    i = ROUND(i, BY2PG);
     while (i < sgsize) {
         r = page_alloc(&p);
         if (r) {
