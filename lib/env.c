@@ -240,6 +240,7 @@ env_alloc(struct Env **new, u_int parent_id)
 static int load_icode_mapper(u_long va, u_int32_t sgsize,
                              u_char *bin, u_int32_t bin_size, void *user_data)
 {
+    //printf("mapping bin of size %d to va[%x] of size %d\n", bin_size, va, sgsize);
     struct Env *env = (struct Env *)user_data;
     struct Page *p = NULL;
     u_long i;
@@ -260,6 +261,7 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
         }
         size = MIN(BY2PG - offset, bin_size);
         bcopy(bin, page2kva(p) + offset, size);
+        //printf("1copyed %d to %x\n", size, va);
     }
     
     for (i = size; i < bin_size; i += BY2PG) {
@@ -274,10 +276,12 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
         }
         tmpLength = (i + BY2PG < bin_size) ? BY2PG : (bin_size - i);
         bcopy(bin + i, page2kva(p), tmpLength);
+        //printf("2copied %d to %x\n", tmpLength, va + i);
     }
 
     /*Step 2: alloc pages to reach `sgsize` when `bin_size` < `sgsize`.
     * hint: variable `i` has the value of `bin_size` now! */
+    //printf("i:%d\n", i);
     i = ROUND(i, BY2PG);
     while (i < sgsize) {
         r = page_alloc(&p);
@@ -288,7 +292,8 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
         if (r) {
             return -E_NO_MEM;
         }
-        bzero(va + i, BY2PG);
+        bzero(page2kva(p), BY2PG);
+        //printf("Inserted to %x\n", va + i);
         i += BY2PG;
     }
     return 0;
