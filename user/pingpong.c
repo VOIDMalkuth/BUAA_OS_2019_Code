@@ -7,8 +7,9 @@ void
 umain(void)
 {
 	u_int who, i;
-
+    writef("--%d--\n", syscall_super_multi_parameter(1, 2, 3, 4, 5, 6, 7, 8));
 	if ((who = fork()) != 0) {
+        writef("--%d--\n", syscall_super_multi_parameter(758, 2, 3, 4, 5, 6, 7, 8));
 		// get the ball rolling
 		writef("\n@@@@@send 0 from %x to %x\n", syscall_getenvid(), who);
 		ipc_send(who, 0, 0, 0);
