@@ -3,6 +3,7 @@
 #include <asm/asm.h>
 #include <mmu.h>
 #include <trap.h>
+#include <unistd.h>
 	.data
 
 	.p2align 12
@@ -105,4 +106,59 @@ nop
 		lw	k0,TF_EPC(sp) 	//atomic operation needed 
 		jr	k0			//
 		lw	sp,TF_REG29(sp)  /* Deallocate stack */  
+
+
+.globl syscall_ipc_can_multi_send
+syscall_ipc_can_multi_send:
+	// send a3 (env_count) into t0
+	move t0, a3
+	// set up reg param
+	move a3, a2
+	move a2, a1
+	move a1, a0
+	// set up a0 (sysno)
+	li a0, SYS_ipc_can_multi_send
+	// save ra, s0, sp
+	addiu sp, sp, -4
+	sw ra, (sp)
+	addiu sp, sp, -4
+	sw s0, (sp)
+	move t1, sp			// t1 holds old sp
+	// cal stack length
+	addiu t2, t0, 5 	// 1 sysno, 3 param in reg and 1 env_count
+	sll t2, t2, 2
+	move s0, t2
+	subu sp, sp, t2
+
+	sw t0, 16(t1)
+
+	li t3, 0
+	s_sicmsParamCopyLoop:
+	bge t3, t0, s_sicmsParamCopyLoop_end
+	nop
+		addiu t4, t3, 5
+		sll t4, t4, 2
+		
+		addu t5, t1, t4
+		lw t6, (t5)
+
+		addiu t5, t5, 4
+		sw t6,(t5)
+
+		addiu t3, t3, 1
+		j s_sicmsParamCopyLoop
+		nop
+	s_sicmsParamCopyLoop_end:
+
+	jal msyscall
+	nop
+
+	addu sp, sp, s0
+	lw s0, (sp)
+	addiu sp, sp, 4
+	lw ra, (sp)
+	addiu sp, sp, 4
+
+	jr ra
+	nop
 

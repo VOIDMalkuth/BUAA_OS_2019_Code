@@ -7,6 +7,10 @@
 #include <env.h>
 #include <args.h>
 #include <unistd.h>
+
+// Lab4-Extra
+int syscall_ipc_can_multi_send(u_int value, u_int srcva, u_int perm, int env_count, ...);
+int ipc_send_double(u_int envid_1, u_int envid_2, int value, u_int srcva, u_int perm);
 /////////////////////////////////////////////////////head
 extern void umain();
 extern void libmain();

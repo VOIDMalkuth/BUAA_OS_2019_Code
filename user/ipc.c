@@ -6,6 +6,15 @@
 
 extern struct Env *env;
 
+// Lab4-Extra
+int ipc_send_double(u_int envid_1, u_int envid_2, int value, u_int srcva, u_int perm) {
+    int r;
+   while ((r = syscall_ipc_can_multi_send(value, srcva, perm, 2, envid_1, envid_2)) == -E_IPC_NOT_RECV) {
+        syscall_yield();
+    }
+   return r;
+}
+
 // Send val to whom.  This function keeps trying until
 // it succeeds.  It should panic() on any error other than
 // -E_IPC_NOT_RECV.

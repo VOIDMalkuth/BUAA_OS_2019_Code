@@ -4,6 +4,7 @@
 #include <printf.h>
 #include <pmap.h>
 #include <sched.h>
+#include <unistd.h>
 
 extern char *KERNEL_SP;
 extern struct Env *curenv;
@@ -460,3 +461,41 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 	return 0;
 }
 
+int sys_ipc_can_multi_send(int sysno, u_int value, u_int srcva,
+	u_int perm, int env_count, ...) {
+
+	int i = 0;
+	va_list ap;
+	int envid = 0;
+	struct Env *e = NULL;
+
+	va_start(ap, env_count);
+	for (i = 0; i < env_count; i++) {
+		envid = va_arg(ap, u_int);
+		int r = envid2env(envid, &e, 0);
+		if (r < 0) {
+			va_end(ap);
+			return r;
+		}
+
+		if (!e->env_ipc_recving) {
+			va_end(ap);
+			return -E_IPC_NOT_RECV;
+		}
+	}
+	va_end(ap);
+
+
+	va_start(ap, env_count);
+	for (i = 0; i < env_count; i++) {
+		envid = va_arg(ap, u_int);
+		int r = sys_ipc_can_send(SYS_ipc_recv, envid, value, srcva, perm);
+		if (r < 0) {
+			va_end(ap);
+			return r;
+		}
+	}
+	va_end(ap);
+
+	return 0;
+}

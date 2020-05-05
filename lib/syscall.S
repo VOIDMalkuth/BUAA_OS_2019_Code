@@ -118,3 +118,4 @@ sys_call_table:                         // Syscall Table
     .word sys_ipc_recv
     .word sys_cgetc
     .word sys_super_multi_parameter
+    .word sys_ipc_can_multi_send
