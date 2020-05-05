@@ -8,6 +8,10 @@
 extern char aoutcode[];
 extern char boutcode[];
 
+int sys_super_multi_parameter(u_int a, u_int b, u_int c, u_int d, u_int e, u_int f, u_int g, u_int h) {
+    return a;
+}
+
 void mips_init()
 {
 	printf("init.c:\tmips_init() is called\n");

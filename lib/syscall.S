@@ -62,17 +62,17 @@ NESTED(handle_sys,TF_SIZE, sp)
 
     // copy to kernel stack as long as more than 3 param
     // user 6 (syscall param 4) -- kernel 5
-    li t5, 3
+    li t5, 4
     s_startCopyStack:
     blt t3, t5, s_endCopyStack
     nop
-        addiu t6, t5, 3
+        addiu t6, t5, 1
         sll t6, t6, 2
         addu t6, t6, t0
 
         lw t7, (t6)
 
-        addiu t6, t5, 2
+        addiu t6, t5, 0
         sll t6, t6, 2
         addu t6, t6, sp
 
@@ -117,3 +117,4 @@ sys_call_table:                         // Syscall Table
     .word sys_ipc_can_send
     .word sys_ipc_recv
     .word sys_cgetc
+    .word sys_super_multi_parameter
