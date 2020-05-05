@@ -17,7 +17,7 @@ umain(void)
         num = ipc_recv(&sender, 0, 0);
         writef("%x got %d from %x\n", syscall_getenvid(), num, sender);
         num = num + 1;
-        writef("\n@@@@@send %d from %x to %x\n", syscall_getenvid(), num, BENVID);
+        writef("\n@@@@@send %d from %x to %x\n", num, syscall_getenvid(), BENVID);
         ipc_send(BENVID, num, 0, 0);
     }
 

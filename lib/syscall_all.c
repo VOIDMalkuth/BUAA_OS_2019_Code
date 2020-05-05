@@ -466,20 +466,24 @@ int sys_ipc_can_multi_send(int sysno, u_int value, u_int srcva,
 
 	int i = 0;
 	va_list ap;
-	int envid = 0;
+	u_int envid = 0;
 	struct Env *e = NULL;
 
-	va_start(ap, env_count);
+	//printf("inside! %d, %d, %d, %d\n", value, srcva, perm, env_count);
+
+    va_start(ap, env_count);
 	for (i = 0; i < env_count; i++) {
 		envid = va_arg(ap, u_int);
 		int r = envid2env(envid, &e, 0);
 		if (r < 0) {
 			va_end(ap);
-			return r;
+			//printf("Envid-0x%x is r = %d\n", envid, r);
+            return r;
 		}
 
 		if (!e->env_ipc_recving) {
 			va_end(ap);
+            //printf("Envid-0x%x is r = %d\n", envid, r);
 			return -E_IPC_NOT_RECV;
 		}
 	}

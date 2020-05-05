@@ -15,8 +15,8 @@ umain(void)
     
     // start
     while (aNum < 5 || bNum < 5) {
-        writef("\n@@@@@send %d from %x to %x and %x\n", aNum + 1, syscall_getenvid(), AENVID, BENVID);
-        r = ipc_send_double(0x800, 0x1802, aNum + 1, 0, 0);
+        writef("\n@@@@@send %d from %x to %x and %x\n", aNum + 1, syscall_getenvid(), AENVID, CENVID);
+        r = ipc_send_double(AENVID, CENVID, aNum + 1, 0, 0);
         writef("%x am waiting.....\n", syscall_getenvid());
         tmpNum = ipc_recv(&sender, 0, 0);
         writef("%x got %d from %x\n", syscall_getenvid(), tmpNum, sender);

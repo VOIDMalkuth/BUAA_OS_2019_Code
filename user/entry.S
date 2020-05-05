@@ -120,22 +120,22 @@ syscall_ipc_can_multi_send:
 	// set up a0 (sysno)
 	li a0, SYS_ipc_can_multi_send
 	// set up a1 (total param)
-	addiu a1, t0, 5
+	addiu a1, t0, 4
 
+    move t1, sp         // t1 holds old sp
 	// save ra, s0, sp
 	addiu sp, sp, -4
 	sw ra, (sp)
 	addiu sp, sp, -4
 	sw s0, (sp)
-	move t1, sp			// t1 holds old sp
 	// cal stack length
 	addiu t2, t0, 6 	// 1 sysno, 1 param cnt, 3 param in reg and 1 env_count
 	sll t2, t2, 2
 	move s0, t2
 	subu sp, sp, t2
 
-	sw t3, 16(t1)
-	sw t0, 20(t1)
+	sw t3, 16(sp)
+	sw t0, 20(sp)
 
 	li t3, 0
 	s_sicmsParamCopyLoop:
@@ -156,7 +156,7 @@ syscall_ipc_can_multi_send:
 		nop
 	s_sicmsParamCopyLoop_end:
 
-	jal msyscall
+    jal msyscall
 	nop
 
 	addu sp, sp, s0
