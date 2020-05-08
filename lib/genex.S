@@ -75,8 +75,6 @@ timer_irq:
 	sw	t0, delay
 	beq	t0,t1,1f	
 	nop*/
-	j	ret_from_exception
-	nop
 
 LEAF(do_reserved)
 END(do_reserved)
