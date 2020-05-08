@@ -107,7 +107,7 @@ static Pte *boot_pgdir_walk(Pde *pgdir, u_long va, int create)
         pgtable = alloc(BY2PG, BY2PG, 1);
 
         // set permission
-        Pde perm = PTE_V | PTE_R;
+        Pde perm = PTE_V;
         *pgdir_entryp = PTE_ADDR(PADDR(pgtable)) | perm;
 
         /* Step 3: Get the page table entry for `va`, and return it. */
@@ -321,7 +321,7 @@ pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte)
         ppage->pp_ref++;
         pgtable = page2kva(ppage);
 
-        Pde perm = PTE_V | PTE_R;
+        Pde perm = PTE_V;
         *pgdir_entryp = PTE_ADDR(page2pa(ppage)) | perm;
     } else {
         *ppte = NULL;
