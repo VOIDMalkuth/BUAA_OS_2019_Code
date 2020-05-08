@@ -187,9 +187,10 @@ fork(void)
 	u_int i;
 
     //The parent installs pgfault using set_pgfault_handler
-	set_pgfault_handler(pgfault);
+	//set_pgfault_handler(pgfault);
 	//alloc a new alloc
     newenvid = syscall_env_alloc();
+    set_pgfault_handler(pgfault);
 
 	if (newenvid < 0) {
 		return newenvid;
