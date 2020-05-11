@@ -460,6 +460,12 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 	return 0;
 }
 
+int isValidDev(u_int addr, u_int len) {
+	return (addr >= 0x10000000 && addr + len < 0x10000020) ||
+		   (addr >= 0x13000000 && addr + len < 0x13004200) ||
+		   (addr >= 0x15000000 && addr + len < 0x15000200);
+}
+
 /* Overview:
  * 	This function is used to write data to device, which is
  * 	represented by its mapped physical address.
@@ -487,7 +493,19 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
  */
 int sys_write_dev(int sysno, u_int va, u_int dev, u_int len)
 {
-        // Your code here
+    if (!isValidDev(dev, len)) {
+		return -E_INVAL;
+	}
+
+	volatile u_char *src = (u_char *)(va);
+	volatile u_char *kva = (u_char *)(dev + 0xA0000000);
+
+	int i = 0;
+	for (i = 0; i < len; i++) {
+		kva[i] = src[i];
+	}
+
+	return 0;
 }
 
 /* Overview:
@@ -508,5 +526,17 @@ int sys_write_dev(int sysno, u_int va, u_int dev, u_int len)
  */
 int sys_read_dev(int sysno, u_int va, u_int dev, u_int len)
 {
-        // Your code here
+    if (!isValidDev(dev, len)) {
+		return -E_INVAL;
+	}
+
+	volatile u_char *dst = (u_char *)(va);
+	volatile u_char *kva = (u_char *)(dev + 0xA0000000);
+
+	int i = 0;
+	for (i = 0; i < len; i++) {
+		dst[i] = kva[i];
+	}
+
+	return 0;
 }
