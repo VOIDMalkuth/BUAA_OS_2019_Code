@@ -46,5 +46,6 @@ clean:
 			$(MAKE) --directory=$$d clean; \
 		done; \
 	rm -rf *.o *~ $(vmlinux_elf)
+	rm -rf gxemul/fs.img
 
 include include.mk
