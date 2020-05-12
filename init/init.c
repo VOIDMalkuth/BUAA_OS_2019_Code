@@ -20,7 +20,11 @@ void mips_init()
 
 	// Lab 3 user environment initialization functions
 	env_init();
-	// initialize exception vector.
+	
+    ENV_CREATE(user_fstest);
+    ENV_CREATE(fs_serv);
+    
+    // initialize exception vector.
 	trap_init();
 	// initialize PIT.
 	kclock_init();
