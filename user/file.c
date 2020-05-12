@@ -30,7 +30,7 @@ struct Dev devfile = {
 int
 open(const char *path, int mode)
 {
-	struct Fd *fd;
+    struct Fd *fd;
 	struct Filefd *ffd;
 	u_int size, fileid;
 	int r;
@@ -39,22 +39,44 @@ open(const char *path, int mode)
 
 	// Step 1: Alloc a new Fd, return error code when fail to alloc.
 	// Hint: Please use fd_alloc.
+	r = fd_alloc(&fd);
+	if (r) {
+		return r;
+	}
 
+	r = syscall_mem_alloc(0, (u_int)fd, PTE_V | PTE_R | PTE_LIBRARY);
+	if (r) {
+		return r;
+	}
 
 	// Step 2: Get the file descriptor of the file to open.
 	// Hint: Read fsipc.c, and choose a function.
-
+	r = fsipc_open(path, mode, &fd);
+	if (r) {
+		return r;
+	}
 
 	// Step 3: Set the start address storing the file's content. Set size and fileid correctly.
 	// Hint: Use fd2data to get the start address.
+	ffd = (struct Filefd *)fd;
+	fileid = ffd->f_fileid;
+	size = ffd->f_file.f_size;
 
+	va = fd2data(fd);
 
 	// Step 4: Alloc memory, map the file content into memory.
-	
+	if (size == 0) {
+		return fd2num(fd);
+	}
+	for (i = 0; i < size; i += BY2PG) {
+		if ((r = fsipc_map(fileid, i, va + i)) < 0) {
+			writef("Can not map the file.\n");
+			return r;
+		}
+	}
 
 	// Step 5: Return the number of file descriptor.
-
-
+	return fd2num(fd);
 }
 
 // Overview:
