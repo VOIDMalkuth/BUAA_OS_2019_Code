@@ -53,7 +53,7 @@ ide_read(u_int diskno, u_int secno, void *dst, u_int nsecs)
 	int offset_end = offset_begin + nsecs * 0x200;
 	int offset = 0;
 
-	u_int ideDataBase = 0xA0000000 + 0x13000000 + 0x4000;
+	u_int ideDataBase = 0x13000000 + 0x4000;
 	const int ideOp_read = 0;
 
 	while (offset_begin + offset < offset_end) {
@@ -64,7 +64,7 @@ ide_read(u_int diskno, u_int secno, void *dst, u_int nsecs)
 		}
 		r = syscall_read_dev(dst + offset, ideDataBase, BY2SECT);
 		if (r != 0) {
-			user_panic("Read_dev(IDE data) failed in IDE, va: 0x%x\n", dst + offset);
+			user_panic("Read_dev(IDE data) failed in IDE, va: 0x%x, return val is %d\n", dst + offset, r);
 		}
 		offset += BY2SECT;
 	}
@@ -93,7 +93,7 @@ ide_write(u_int diskno, u_int secno, void *src, u_int nsecs)
 	int offset_end = offset_begin + nsecs * BY2SECT;
 	int offset = 0;
 	
-	u_int ideDataBase = 0xA0000000 + 0x13000000 + 0x4000;
+	u_int ideDataBase = 0x13000000 + 0x4000;
 	const int ideOp_write = 1;
 
 	writef("diskno: %d\n", diskno);
