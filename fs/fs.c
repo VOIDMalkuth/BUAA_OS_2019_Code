@@ -192,10 +192,16 @@ block_is_free(u_int blockno)
 void
 free_block(u_int blockno)
 {
-	// Step 1: Check if the parameter `blockno` is valid (`blockno` can't be zero).
-
+    // Step 1: Check if the parameter `blockno` is valid (`blockno` can't be zero).
+	if (blockno <= 0 || blockno >= super->s_nblocks) {
+		user_panic("Invaild blockno %ud\n", blockno);
+	}
 	// Step 2: Update the flag bit in bitmap.
+	u_int n = blockno % 32;
+	u_int offset = blockno / 32;
 	// you can use bit operation to update flags, such as  a |= (1 << n) .
+	bitmap[offset] |= (1 << n);
+	return;
 }
 
 // Overview:
