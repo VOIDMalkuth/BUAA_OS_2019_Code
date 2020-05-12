@@ -15,7 +15,7 @@ int ideOperation(int op, u_int diskno, u_int offset) {
 	const int ideOp_read = 0;
 	const int ideOp_write = 1;
 
-	if (op != ideOp_read && op != ide_write) {
+	if (op != ideOp_read && op != ideOp_write) {
 		user_panic("IDE Operation %d illegal!\n", op);
 	}
 	
