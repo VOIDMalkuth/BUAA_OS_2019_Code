@@ -461,9 +461,9 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 }
 
 int isValidDev(u_int addr, u_int len) {
-	return (addr >= 0x10000000 && addr + len < 0x10000020) ||
-		   (addr >= 0x13000000 && addr + len < 0x13004200) ||
-		   (addr >= 0x15000000 && addr + len < 0x15000200);
+	return (addr >= 0x10000000 && addr + len <= 0x10000020) ||
+		   (addr >= 0x13000000 && addr + len <= 0x13004200) ||
+		   (addr >= 0x15000000 && addr + len <= 0x15000200);
 }
 
 /* Overview:
