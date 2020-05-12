@@ -70,5 +70,13 @@ endif
 
 clean:
 	rm -rf *~ *.o *.b.c *.b *.x
+	
+	if [ -e "fs.img" ]; then 	\
+		rm -rf fs.img; 			\
+	fi;
+	
+	if [ -e "fsformat" ]; then 	\
+		rm -f fsformat;  		\
+	fi;
 
 include ../include.mk
