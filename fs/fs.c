@@ -547,21 +547,32 @@ file_dirty(struct File *f, u_int offset)
 int
 dir_lookup(struct File *dir, char *name, struct File **file)
 {
-	int r;
+    int r;
 	u_int i, j, nblock;
 	void *blk;
 	struct File *f;
 
 	// Step 1: Calculate nblock: how many blocks this dir have.
+	nblock = dir->f_size / BY2BLK;
 
 	for (i = 0; i < nblock; i++) {
 		// Step 2: Read the i'th block of the dir.
 		// Hint: Use file_get_block.
-
+		r = file_get_block(dir, i, &blk);
+		if (r) {
+			return r;
+		}
 
 		// Step 3: Find target file by file name in all files on this block.
 		// If we find the target file, set the result to *file and set f_dir field.
-		
+		f = (struct File *)blk;
+		for (j = 0; j < FILE2BLK; j++) {
+			if (strcmp(name, f->f_name) == 0) {
+				*file = f;
+				f->f_dir = dir;
+				return 0;
+			}
+		}
 	}
 
 	return -E_NOT_FOUND;
