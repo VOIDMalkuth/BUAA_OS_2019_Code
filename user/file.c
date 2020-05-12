@@ -44,14 +44,6 @@ open(const char *path, int mode)
 		return r;
 	}
 
-	r = syscall_mem_alloc(0, (u_int)fd, PTE_V | PTE_R | PTE_LIBRARY);
-	if (r) {
-		return r;
-	}
-
-    fd->fd_dev_id = devfile.dev_id;
-	fd->fd_omode = mode;
-
 	// Step 2: Get the file descriptor of the file to open.
 	// Hint: Read fsipc.c, and choose a function.
 	r = fsipc_open(path, mode, fd);
