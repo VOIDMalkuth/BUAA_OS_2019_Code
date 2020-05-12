@@ -15,7 +15,10 @@ int block_is_free(u_int);
 u_int
 diskaddr(u_int blockno)
 {
-
+    if (super == NULL || blockno >= super->s_nblocks) {
+		user_panic("Invalid blockno: %d\n", blockno);
+	}
+	return DISKMAP + (blockno * BY2BLK);
 }
 
 // Overview:
