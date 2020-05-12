@@ -318,8 +318,8 @@ read_bitmap(void)
 	void *blk = NULL;
 
 	// Step 1: calculate this number of bitmap blocks, and read all bitmap blocks to memory.
-	nbitmap = super->s_nblocks / BIT2BLK + 1;
-	for (i = 0; i < nbitmap; i++) {
+	nbitmap = (super->s_nblocks + BIT2BLK - 1) / BIT2BLK;
+    for (i = 0; i < nbitmap; i++) {
 		read_block(i + 2, blk, 0);
 	}
 	
