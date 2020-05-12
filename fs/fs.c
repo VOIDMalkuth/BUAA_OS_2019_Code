@@ -68,9 +68,18 @@ block_is_dirty(u_int blockno)
 int
 map_block(u_int blockno)
 {
-	// Step 1: Decide whether this block has already mapped to a page of physical memory.
+    // Step 1: Decide whether this block has already mapped to a page of physical memory.
+	u_int va = block_is_mapped(blockno);
+	if (va) {
+		return 0;
+	}
 
-    // Step 2: Alloc a page of memory for this block via syscall.
+	// Step 2: Alloc a page of memory for this block via syscall.
+	va = diskaddr(blockno);
+	int r = syscall_mem_alloc(0, va, PTE_R | PTE_V);
+	
+	// NoRead!
+	return r;
 }
 
 // Overview:
@@ -78,18 +87,30 @@ map_block(u_int blockno)
 void
 unmap_block(u_int blockno)
 {
-	int r;
+    int r;
 
 	// Step 1: check if this block is mapped.
+	if (!block_is_mapped(blockno)) {
+		user_panic("Not a mapped block: %d\n", blockno);
+	}
 
 	// Step 2: use block_is_free，block_is_dirty to check block , 
 	//if this block is used(not free) and dirty, it needs to be synced to disk: write_block
 	//can't be unmap directly.
+	if (!block_is_free(blockno) && block_is_dirty(blockno)) {
+		write_block(blockno);
+	}
 
 	// Step 3: use 'syscall_mem_unmap' to unmap corresponding virtual memory.
+	r = syscall_mem_unmap(0, diskaddr(blockno));
+	if (r) {
+		user_panic("Unmap Error, return code is: %d\n", r);
+	}
 
 	// Step 4: validate result of this unmap operation.
 	user_assert(!block_is_mapped(blockno));
+
+    return;
 }
 
 // Overview:
