@@ -49,6 +49,9 @@ open(const char *path, int mode)
 		return r;
 	}
 
+    fd->fd_dev_id = devfile.dev_id;
+	fd->fd_omode = mode;
+
 	// Step 2: Get the file descriptor of the file to open.
 	// Hint: Read fsipc.c, and choose a function.
 	r = fsipc_open(path, mode, &fd);
