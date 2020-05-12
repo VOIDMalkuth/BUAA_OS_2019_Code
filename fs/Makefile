@@ -71,8 +71,8 @@ endif
 clean:
 	rm -rf *~ *.o *.b.c *.b *.x
 	
-	if [ -e "fs.img" ]; then 	\
-		rm -rf fs.img; 			\
+	if [ -e "../gxemul/fs.img" ]; then 	\
+		rm -rf ../gxemul/fs.img; 			\
 	fi;
 	
 	if [ -e "fsformat" ]; then 	\
