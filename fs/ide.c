@@ -6,7 +6,7 @@
 #include "lib.h"
 #include <mmu.h>
 
-int ideOperation(u_int op, u_int diskno, u_int offset) {
+int ideOperation(u_char op, u_int diskno, u_int offset) {
 	u_int ideMemBase = 0x13000000;
 	volatile u_char *ideOpAddr = (volatile u_char *)(ideMemBase + 0x0020);
 	volatile u_int *ideDiskAddr = (volatile u_int *)(ideMemBase + 0x0010);
