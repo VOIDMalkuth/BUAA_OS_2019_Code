@@ -6,14 +6,14 @@
 #include "lib.h"
 #include <mmu.h>
 
-int ideOperation(u_char op, u_int diskno, u_int offset) {
+int ideOperation(u_int op, u_int diskno, u_int offset) {
 	u_int ideMemBase = 0x13000000;
 	volatile u_char *ideOpAddr = (volatile u_char *)(ideMemBase + 0x0020);
 	volatile u_int *ideDiskAddr = (volatile u_int *)(ideMemBase + 0x0010);
 	volatile u_int *ideOffsetAddr = (volatile u_int *)(ideMemBase + 0x0000);
 	volatile u_int *ideResultAddr = (volatile u_int *)(ideMemBase + 0x0030);
-	const u_char ideOp_read = 0;
-	const u_char ideOp_write = 1;
+	const u_int ideOp_read = 0;
+	const u_int ideOp_write = 1;
 
 	if (op != ideOp_read && op != ideOp_write) {
 		user_panic("IDE Operation %d illegal!\n", op);
@@ -27,10 +27,10 @@ int ideOperation(u_char op, u_int diskno, u_int offset) {
     syscall_write_dev(&offset, ideOffsetAddr, sizeof(offset));
     syscall_write_dev(&op, ideOpAddr, sizeof(op));
     
-    int r = 0;
-    syscall_read_dev(&r, ideResultAddr, sizeof(r));
+    int res = 0;
+    syscall_read_dev(&res, ideResultAddr, sizeof(res));
 
-	return r;
+	return res;
 }
 
 // Overview:
@@ -57,7 +57,7 @@ ide_read(u_int diskno, u_int secno, void *dst, u_int nsecs)
 	int offset = 0;
 
 	u_int ideDataBase = 0x13000000 + 0x4000;
-	const u_char ideOp_read = 0;
+	const u_int ideOp_read = 0;
 
 	while (offset_begin + offset < offset_end) {
 		int r = ideOperation(ideOp_read, diskno, offset_begin + offset);
@@ -97,7 +97,7 @@ ide_write(u_int diskno, u_int secno, void *src, u_int nsecs)
 	int offset = 0;
 	
 	u_int ideDataBase = 0x13000000 + 0x4000;
-	const u_char ideOp_write = 1;
+	const u_int ideOp_write = 1;
 
 	writef("diskno: %d\n", diskno);
 	while (offset_begin + offset < offset_end) {
