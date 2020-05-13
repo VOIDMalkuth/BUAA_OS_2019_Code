@@ -500,10 +500,7 @@ int sys_write_dev(int sysno, u_int va, u_int dev, u_int len)
 	volatile u_char *src = (u_char *)(va);
 	volatile u_char *kva = (u_char *)(dev + 0xA0000000);
 
-	int i = 0;
-	for (i = 0; i < len; i++) {
-		kva[i] = src[i];
-	}
+    bcopy(src, kva, len);
 
 	return 0;
 }
@@ -533,10 +530,7 @@ int sys_read_dev(int sysno, u_int va, u_int dev, u_int len)
 	volatile u_char *dst = (u_char *)(va);
 	volatile u_char *kva = (u_char *)(dev + 0xA0000000);
 
-	int i = 0;
-	for (i = 0; i < len; i++) {
-		dst[i] = kva[i];
-	}
+    bcopy(kva, dst, len);
 
 	return 0;
 }
