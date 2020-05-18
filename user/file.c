@@ -301,6 +301,10 @@ int print_file(int fd_id, int length) {
 	if (fd->fd_dev_id != devfile.dev_id) {
 		return -E_INVAL;
 	}
+    if ((fd->fd_omode & O_ACCMODE) == O_WRONLY) {
+		writef("[%08x] read %d -- bad mode\n", env->env_id, fd_id);
+		return -E_INVAL;
+	}
 
 	ffd = (struct Filefd *)fd;
 	f = &(ffd->f_file);
@@ -328,6 +332,10 @@ int modify_file(int fd_id, char * buf, int length) {
 		return r;
 	}
 	if (fd->fd_dev_id != devfile.dev_id) {
+		return -E_INVAL;
+	}
+    if ((fd->fd_omode & O_ACCMODE) == O_RDONLY) {
+		writef("[%08x] write %d -- bad mode\n", env->env_id, fd_id);
 		return -E_INVAL;
 	}
 
