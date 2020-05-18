@@ -10,7 +10,9 @@ void handle_cons_ir(char c, int status) {
         printf("length: %d\n", count);
         printf("content: %s\n", data);
         count = 0;
-    } else {
+    } else if (count < 63) {
         data[count++] = c;
+    } else {
+        printf("Character Limit Exceeded!\n");
     }
 }
