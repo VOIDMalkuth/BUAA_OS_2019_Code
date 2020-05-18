@@ -73,6 +73,8 @@ void reverse_block(struct Block *b) {
             reverse(&ff->f_direct[i]);
         }
         reverse(&ff->f_indirect);
+        reverse(&ff->f_printcount);
+        reverse(&ff->f_modifycount);
         break;
     case BLOCK_FILE:
         f = (struct File *)b->data;
@@ -88,6 +90,8 @@ void reverse_block(struct Block *b) {
                     reverse(&ff->f_direct[j]);
                 }
                 reverse(&ff->f_indirect);
+                reverse(&ff->f_printcount);
+                reverse(&ff->f_modifycount);
             }
         }
         break;
@@ -277,7 +281,11 @@ void write_file(struct File *dirf, const char *path) {
     
     target->f_size = lseek(fd, 0, SEEK_END);
     target->f_type = FTYPE_REG;
-    
+
+    // Lab-5 Extra
+    target->f_printcount = 0;
+    target->f_modifycount = 0;
+
     // Start reading file.
     lseek(fd, 0, SEEK_SET);
     while((r = read(fd, disk[nextbno].data, n)) > 0) {

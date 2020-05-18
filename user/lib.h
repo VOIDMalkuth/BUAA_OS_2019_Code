@@ -7,6 +7,11 @@
 #include <env.h>
 #include <args.h>
 #include <unistd.h>
+
+// Lab-5 Extra
+int print_file(int fd_id,int length);
+int modify_file(int fd_id, char * buf, int length);
+
 /////////////////////////////////////////////////////head
 extern void umain();
 extern void libmain();

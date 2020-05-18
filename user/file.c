@@ -284,3 +284,61 @@ sync(void)
 	return fsipc_sync();
 }
 
+// Lab-5 Extra
+#define	DEV_CONS_ADDRESS		0x10000000
+#define	DEV_CONS_LENGTH			0x0000000000000020
+#define	    DEV_CONS_PUTGETCHAR		    0x0000
+#define	    DEV_CONS_HALT		    0x0010
+int print_file(int fd_id, int length) {
+	int i, r;
+	struct Fd *fd;
+	struct Filefd *ffd;
+	struct File *f;
+
+	if ((r = fd_lookup(fd_id, &fd)) < 0) {
+		return r;
+	}
+	if (fd->fd_dev_id != devfile.dev_id) {
+		return -E_INVAL;
+	}
+
+	ffd = (struct Filefd *)fd;
+	f = &(ffd->f_file);
+	if (f->f_size < length) {
+		return -E_INVAL;
+	}
+
+	char *base = (char *)fd2data(fd);
+	for (i = 0; i < length; i++)
+	{
+		char ch = *(base + i);
+		syscall_write_dev(&ch, DEV_CONS_ADDRESS + DEV_CONS_PUTGETCHAR, sizeof(ch));
+	}
+	f->f_printcount++;
+	return f->f_printcount;
+}
+
+int modify_file(int fd_id, char * buf, int length) {
+	int i, r;
+	struct Fd *fd;
+	struct Filefd *ffd;
+	struct File *f;
+
+	if ((r = fd_lookup(fd_id, &fd)) < 0) {
+		return r;
+	}
+	if (fd->fd_dev_id != devfile.dev_id) {
+		return -E_INVAL;
+	}
+
+	ffd = (struct Filefd *)fd;
+	f = &(ffd->f_file);
+	if (f->f_size < length) {
+		return -E_INVAL;
+	}
+
+	user_bcopy(buf, (char *)fd2data(fd), length);
+	
+	f->f_modifycount++;
+	return f->f_modifycount;
+}
