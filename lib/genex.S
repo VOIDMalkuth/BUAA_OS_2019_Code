@@ -69,7 +69,8 @@ END(handle_int)
 	.extern delay
 
 timer_irq:
-
+    li t0, 0xB5000110
+    sw zero, (t0)
 1:	j	sched_yield
 	nop
 	/*li t1, 0xff
@@ -78,7 +79,7 @@ timer_irq:
 	sw	t0, delay
 	beq	t0,t1,1f	
 	nop*/
-	j	ret_from_exception
+    j	ret_from_exception
 	nop
 
 console_irq:
