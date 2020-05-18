@@ -14,7 +14,7 @@ void umain()
                 user_panic("open /newmotd: %d", r);
         }
         fdnum = r;
-        /* Lab-5 Extra Basic Test
+        /* Lab-5 Extra Basic Test */
         writef("open is good\n");
         r = print_file(fdnum, 13);
         writef("\n printfile cnt: %d\n", r);
@@ -26,7 +26,7 @@ void umain()
         writef("\n modifyfile cnt: %d\nprinting: ", r);
         r = print_file(fdnum, 15);
         writef("\n printfile cnt: %d\n", r);
-        */
+        
         if ((n = read(fdnum, buf, 511)) < 0) {
                 user_panic("read /newmotd: %d", r);
         }
