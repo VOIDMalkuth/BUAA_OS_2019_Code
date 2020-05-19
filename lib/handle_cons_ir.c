@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <printf.h>
 
 void handle_cons_ir(char c, int status) {
     static char data[64] = {0};
