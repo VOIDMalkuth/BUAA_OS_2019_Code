@@ -171,6 +171,7 @@ int spawn(char *prog, char **argv)
 	}
 	syscall_load_icode(child_envid, binary, binaryStat.st_size);
 	size = binaryStat.st_size;
+    close(fd);
     // Your code ends here
 
 	struct Trapframe *tf;

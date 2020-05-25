@@ -113,8 +113,8 @@ close(int fdnum)
 		return r;
 	}
 
+    r = (*dev->dev_close)(fd);
     fd_close(fd);
-	r = (*dev->dev_close)(fd);
 	return r;
 }
 
