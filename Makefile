@@ -28,12 +28,15 @@ objects		  := $(boot_dir)/start.o			  \
 				 $(fs_dir)/*.x \
 				 $(mm_dir)/*.o
 
-.PHONY: all $(modules) clean
+.PHONY: all $(modules) clean run
 
 all: $(modules) vmlinux
 
 vmlinux: $(modules)
 	$(LD) -o $(vmlinux_elf) -N -T $(link_script) $(objects)
+
+run: $(modules) vmlinux
+	cd gxemul && ./runVmlinux.sh
 
 $(modules): 
 	$(MAKE) --directory=$@
