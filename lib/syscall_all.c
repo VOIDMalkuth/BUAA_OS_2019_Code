@@ -534,3 +534,17 @@ int sys_read_dev(int sysno, u_int va, u_int dev, u_int len)
 
 	return 0;
 }
+
+int sys_load_icode(int sysno, u_int envid, u_char* binary, u_int size) {
+    int r;
+	struct Env *e;
+
+	r = envid2env(envid, &e, 0);
+	if (r < 0) {
+		return r;
+	}
+
+	r = env_load_elf(binary, size, e);
+
+	return r;
+}

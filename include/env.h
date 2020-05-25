@@ -58,7 +58,8 @@ void env_destroy(struct Env *e);
 
 int envid2env(u_int envid, struct Env **penv, int checkperm);
 void env_run(struct Env *e);
-
+// Lab-6
+int env_load_elf(u_char *binary, u_int size, struct Env *e);
 
 // for the grading script
 #define ENV_CREATE2(x, y) \

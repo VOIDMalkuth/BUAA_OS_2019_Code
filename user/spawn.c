@@ -122,19 +122,50 @@ int spawn(char *prog, char **argv)
 		user_panic("spawn ::open line 102 RDONLY wrong !\n");
 		return r;
 	}
-	// Your code begins here
-	// Before Step 2 , You had better check the "target" spawned is a execute bin 
+    
+    // Your code begins here
+	// Before Step 2 , You had better check the "target" spawned is a execute bin
+	fd = r;
+	r = read(fd, elfbuf, 512);
+	if (r < 0) {
+		return r;
+	}
+	if (strlen(elfbuf) < 4 || !usr_is_elf_format(elfbuf)) {
+		return -E_INVAL;
+	}
 	// Step 2: Allocate an env (Hint: using syscall_env_alloc())
+    r = syscall_env_alloc();
+    if (r < 0) {
+		return r;
+	} else if (r == 0) {
+		return 0;
+	}
+	child_envid = r;
 	// Step 3: Using init_stack(...) to initialize the stack of the allocated env
+	r = init_stack(r, argv, &esp);
+    if (r < 0) {
+		return r;
+	}
 	// Step 3: Map file's content to new env's text segment
 	//        Hint 1: what is the offset of the text segment in file? try to use objdump to find out.
 	//        Hint 2: using read_map(...)
-	//		  Hint 3: Important!!! sometimes ,its not safe to use read_map ,guess why 
+	//		  Hint 3: Important!!! sometimes ,its not safe to use read_map ,guess why
 	//				  If you understand, you can achieve the "load APP" with any method
 	// Note1: Step 1 and 2 need sanity check. In other words, you should check whether
 	//       the file is opened successfully, and env is allocated successfully.
 	// Note2: You can achieve this func in any way ，remember to ensure the correctness
-	//        Maybe you can review lab3 
+	//        Maybe you can review lab3
+	struct Stat binaryStat;
+	r = fstat(fd, &binaryStat);
+    if (r < 0) {
+		return r;
+	}
+	u_char *binary;
+	r = read_map(fd, 0, &binary);
+	if (r < 0) {
+		return r;
+	}
+	syscall_load_icode(child_envid, binary, binaryStat.st_size);
 	// Your code ends here
 
 	struct Trapframe *tf;

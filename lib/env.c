@@ -558,3 +558,9 @@ void env_check()
         printf("pe2`s sp register %x\n",pe2->env_tf.regs[29]);
         printf("env_check() succeeded!\n");
 }
+
+int env_load_elf(u_char *binary, u_int size, struct Env *e) {
+    int entry_point;
+    int r = load_elf(binary, size, &entry_point, e, load_icode_mapper);
+    return r;
+}
