@@ -106,12 +106,18 @@ again:
 			}
 			// Your code here -- open t for reading,
 			// dup it onto fd 0, and then close the fd you got.
-			user_panic("< redirection not implemented");
+			fd = open(t, O_RDONLY);
+			dup(fd, 0);
+			close(fd);
+            // user_panic("< redirection not implemented");
 			break;
 		case '>':
 			// Your code here -- open t for writing,
 			// dup it onto fd 1, and then close the fd you got.
-			user_panic("> redirection not implemented");
+			fd = open(t, O_WRONLY);
+			dup(fd, 1);
+			close(fd);
+            //user_panic("> redirection not implemented");
 			break;
 		case '|':
 			// Your code here.
@@ -129,8 +135,23 @@ again:
 			//		set "rightpipe" to the child envid
 			//		goto runit, to execute this piece of the pipeline
 			//			and then wait for the right side to finish
-			user_panic("| not implemented");
-			break;
+			if ((i=pipe(p)) < 0)
+                user_panic("pipe: %e", i);
+            r = fork();
+			if (r == 0) {
+				dup(p[0], 0);
+				close(p[0]);
+				close(p[1]);
+				goto again;
+			} else {
+				dup(p[1], 1);
+				close(p[1]);
+				close(p[0]);
+			    rightpipe = r;
+                goto runit;
+            }
+			// user_panic("| not implemented");
+            break;
 		}
 	}
 
