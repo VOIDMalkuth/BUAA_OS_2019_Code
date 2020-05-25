@@ -98,88 +98,157 @@ int usr_is_elf_format(u_char *binary){
     return 0;
 }
 
+
+
 int 
 usr_load_elf(int fd , Elf32_Phdr *ph, int child_envid){
 	//Hint: maybe this function is useful 
 	//      If you want to use this func, you should fill it ,it's not hard
-	return 0;
+    u_long va = ph->p_vaddr;
+    u_int sgsize = ph->p_memsz;
+    u_int bin_size = ph->p_filesz;
+    u_int off = ph->p_offset;
+
+    void *blk;
+    int r;
+    int i = 0;
+    u_int offset = va - ROUNDDOWN(va, BY2PG);
+    i = i-offset;
+    /*
+    if (offset != 0) {
+        u_int partial = BY2PG - offset;
+        if (bin_size < partial)
+            partial = bin_size;
+        r = read_map(fd, off+i, &blk);
+        UERR(r);
+        syscall_mem_map(0, blk, child_envid, va+i, PTE_R);
+        i += partial;
+    }
+    */
+
+    for (; bin_size > BY2PG && i < bin_size-BY2PG; i+= BY2PG) {
+        if((r = read_map(fd, off+i, &blk)) < 0) {
+			return r;
+		}
+        syscall_mem_map(0, blk, child_envid, va+i, PTE_V | PTE_R);
+    }
+
+    if (i < bin_size) {
+        r = read_map(fd, off+i, &blk);
+        u_int partial = bin_size - i;
+        if (partial > 0) {
+            user_bzero((u_char*)blk + partial, BY2PG - partial);
+        }
+        if(r < 0) return r;
+        syscall_mem_map(0, blk, child_envid, va+i, PTE_V | PTE_R);
+
+        i += BY2PG;
+    }
+
+    while (i < sgsize) {
+        syscall_mem_alloc(child_envid, va+i, PTE_V | PTE_R);
+        i += BY2PG;
+    }
+    
+    return 0;
 }
+
+extern void __asm_pgfault_handler(void);
 
 int spawn(char *prog, char **argv)
 {
-	u_char elfbuf[512];
+	//u_char elfbuf[512];
 	int r;
 	int fd;
 	u_int child_envid;
 	int size, text_start;
 	u_int i, *blk;
 	u_int esp;
-	Elf32_Ehdr* elf;
-	Elf32_Phdr* ph;
+	//Elf32_Ehdr* elf;
+	//Elf32_Phdr* ph;
 	// Note 0: some variable may be not used,you can cancel them as you like
 	// Step 1: Open the file specified by `prog` (prog is the path of the program)
 	if((r=open(prog, O_RDONLY))<0){
-		user_panic("spawn ::open line 102 RDONLY wrong !\n");
+		writef("spawn ::open line 102 RDONLY wrong !\n");
 		return r;
 	}
-    
-    // Your code begins here
-	// Before Step 2 , You had better check the "target" spawned is a execute bin
+	// Your code begins here
 	fd = r;
-	r = read(fd, elfbuf, 512);
-	if (r < 0) {
-		return r;
-	}
-	if (strlen(elfbuf) < 4 || !usr_is_elf_format(elfbuf)) {
-		return -E_INVAL;
-	}
-    elf = (Elf32_Ehdr *) elf;
-    if (elf->e_type != 2) {
-        return -E_INVAL;
-    }
+    // Before Step 2 , You had better check the "target" spawned is a execute bin
 	// Step 2: Allocate an env (Hint: using syscall_env_alloc())
-    r = syscall_env_alloc();
+	r = syscall_env_alloc();
     if (r < 0) {
-		return r;
-	} else if (r == 0) {
-		return 0;
-	}
-	child_envid = r;
-	// Step 3: Using init_stack(...) to initialize the stack of the allocated env
-	r = init_stack(r, argv, &esp);
-    if (r < 0) {
-		return r;
-	}
-	// Step 3: Map file's content to new env's text segment
+        writef("env_alloc failed");
+        return r;
+    }
+    child_envid = r;
+    // Step 3: Using init_stack(...) to initialize the stack of the allocated env
+	init_stack(child_envid, argv, &esp);
+    // Step 3: Map file's content to new env's text segment
 	//        Hint 1: what is the offset of the text segment in file? try to use objdump to find out.
 	//        Hint 2: using read_map(...)
-	//		  Hint 3: Important!!! sometimes ,its not safe to use read_map ,guess why
+	//		  Hint 3: Important!!! sometimes ,its not safe to use read_map ,guess why 
 	//				  If you understand, you can achieve the "load APP" with any method
-	// Note1: Step 1 and 2 need sanity check. In other words, you should check whether
+    u_char *elfbuf;
+    elfbuf = fd2data(num2fd(fd));
+    size = ((struct Filefd*)num2fd(fd))->f_file.f_size; 
+    //r = read(fd, elfbuf, sizeof(elfbuf));
+    //if (r < 0) {
+    //    writef("Load file failed!");
+    //    return r;
+    //}
+    // from env.c
+    //
+    Elf32_Ehdr *ehdr = (Elf32_Ehdr *)elfbuf;
+    Elf32_Phdr *phdr = NULL;
+    
+    u_char *ptr_ph_table = NULL;
+    Elf32_Half ph_entry_count;
+    Elf32_Half ph_entry_size;
+    
+    if (size < 4 || !usr_is_elf_format(elfbuf)) {
+        writef("size || !is_elf");
+        return -1;
+    }
+    
+    //seek(fd, ehdr->e_phoff);
+    //r = read(fd, elfbuf, size);
+    //if (r < 0) {
+    //    syscall_panic("seek_read_failed");
+    //}
+    ptr_ph_table = elfbuf + ehdr->e_phoff;
+    ph_entry_count = ehdr->e_phnum;
+    ph_entry_size = ehdr->e_phentsize;
+    
+    while (ph_entry_count--) {
+        
+        phdr = (Elf32_Phdr *)ptr_ph_table;
+
+        if (phdr->p_type == PT_LOAD) {
+            r = usr_load_elf(fd, phdr, child_envid);
+            if (r < 0) {
+                writef("usr_load_elf failed");
+            }
+        }
+
+        ptr_ph_table += ph_entry_size;
+
+    }
+    
+    // Note1: Step 1 and 2 need sanity check. In other words, you should check whether
 	//       the file is opened successfully, and env is allocated successfully.
 	// Note2: You can achieve this func in any way ，remember to ensure the correctness
-	//        Maybe you can review lab3
-	struct Stat binaryStat;
-	r = fstat(fd, &binaryStat);
-    if (r < 0) {
-		return r;
-	}
-	u_char *binary;
-	r = read_map(fd, 0, &binary);
-	if (r < 0) {
-		return r;
-	}
-	syscall_load_icode(child_envid, binary, binaryStat.st_size);
-	size = binaryStat.st_size;
-    close(fd);
-    // Your code ends here
+	//        Maybe you can review lab3 
+	// Your code ends here
 
 	struct Trapframe *tf;
 	writef("\n::::::::::spawn size : %x  sp : %x::::::::\n",size,esp);
 	tf = &(envs[ENVX(child_envid)].env_tf);
 	tf->pc = UTEXT;
 	tf->regs[29]=esp;
-
+	if (syscall_set_pgfault_handler(child_envid, __asm_pgfault_handler, UXSTACKTOP) < 0){
+		writef("cannot set pgfault handler\n");
+	}
 
 	// Share memory
 	u_int pdeno = 0;
@@ -218,10 +287,9 @@ int spawn(char *prog, char **argv)
 
 }
 
+
 int
 spawnl(char *prog, char *args, ...)
 {
 	return spawn(prog, &args);
 }
-
-
