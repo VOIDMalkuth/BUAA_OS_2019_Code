@@ -114,7 +114,11 @@ again:
 		case '>':
 			// Your code here -- open t for writing,
 			// dup it onto fd 1, and then close the fd you got.
-			fd = open(t, O_WRONLY);
+			if(gettoken(0, &t) != 'w'){
+				writef("syntax error: > not followed by word\n");
+				exit();
+			}
+            fd = open(t, O_WRONLY);
 			dup(fd, 1);
 			close(fd);
             //user_panic("> redirection not implemented");
