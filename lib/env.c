@@ -81,6 +81,7 @@ u_int sem_alloc(int init_value) {
     }
 
     int id = mksemid(freeSem);
+    freeSem->sem_id = id;
     return id;
 }
 
