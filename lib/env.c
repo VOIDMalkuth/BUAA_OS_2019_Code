@@ -125,6 +125,7 @@ int sem_V_Operation(int sem_id) {
         }
         e = s->sem_blockQueue[s->sem_queueHead];
         s->sem_queueHead = (s->sem_queueHead + 1) % SEM_MAXBLOCK;
+        e->env_status = ENV_RUNNABLE;
         return SEM_SUCC_YIELD;
     }
     return SEM_SUCC_NOYIELD;
