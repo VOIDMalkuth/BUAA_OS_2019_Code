@@ -4,6 +4,28 @@
 #include <env.h>
 #include <trap.h>
 
+/* ===================== Lab-6 Extra Begin ===================== */
+int syscall_init_PV_var(int init_value) {
+	msyscall(SYS_init_PV_var, init_value, 0, 0, 0, 0);
+}
+
+void syscall_P(int pv_id) {
+	msyscall(SYS_P, pv_id, 0, 0, 0, 0);
+}
+
+void syscall_V(int pv_id) {
+	msyscall(SYS_V, pv_id, 0, 0, 0, 0);
+}
+
+int syscall_check_PV_value(int pv_id) {
+	msyscall(SYS_check_PV_value, pv_id, 0, 0, 0, 0);
+}
+
+void syscall_release_PV_var(int pv_id) {
+	msyscall(SYS_release_PV_var, pv_id, 0, 0, 0, 0);
+}
+/* ===================== Lab-6 Extra Ends ===================== */
+
 void syscall_putchar(char ch)
 {
 	msyscall(SYS_putchar, (int)ch, 0, 0, 0, 0);
