@@ -18,6 +18,153 @@ struct Env_list env_sched_list[2];      // Runnable list
 extern Pde *boot_pgdir;
 extern char *KERNEL_SP;
 
+/* ===================== Lab-6 Extra Begin ===================== */
+
+// ----- Queue Operation -----
+#define QUEUE_ISEMPTY(head, tail) ((head) == (tail))
+#define QUEUE_ISFULL(head, tail, size) ((head) == (((tail) + 1) % (size)))
+
+// ----- Semaphore defination -----
+struct Semaphore sems[SEM_MAXSEM];
+
+// ----- sem_id related -----
+u_int mksemid(struct Semaphore *s) {
+    static u_long next_sem_id = 0;
+    u_int idx = s - sems;
+    return (++next_sem_id << (SEM_LOG2NSEM)) | idx;
+}
+
+u_int getSem(u_int sem_id, struct Semaphore **s) {
+    u_int idx = sem_id & 0x7;
+    if (idx < 0 || idx >= SEM_MAXSEM) {
+        s = NULL;
+        return -E_INVAL;
+    }
+
+    struct Semaphore *sem = &sems[idx];
+    if(sem->sem_status != SEM_ALLOCATED || sem->sem_id != sem_id) {
+        s = NULL;
+        return -E_INVAL;
+    }
+
+    *s = sem;
+    return 0;
+}
+
+// ----- real stuff -----
+
+void sem_init() {
+    int i = 0;
+    for (i = 0; i < SEM_MAXSEM; i++){
+        sems[i].sem_status = SEM_FREE;
+        sems[i].sem_lock = 0;
+        sems[i].sem_queueHead = 0;
+        sems[i].sem_queueTail = 0;
+    }
+    return;
+}
+
+u_int sem_alloc(int init_value) {
+    struct Semaphore *freeSem = NULL;
+
+    int i = 0;
+    for (i = 0; i < SEM_MAXSEM; i++) {
+        if (sems[i].sem_status == SEM_FREE) {
+            freeSem = &sems[i];
+            break;
+        }
+    }
+
+    if (freeSem == NULL) {
+        return -SEM_E_MAX_SEM;
+    }
+
+    int id = mksemid(freeSem);
+    return id;
+}
+
+int sem_P_Operation(int sem_id, struct Env *e) {
+    int r;
+    struct Semaphore *s;
+    r = getSem(sem_id, &s);
+    if (r < 0) {
+        return r;
+    }
+
+    s->sem_val--;
+    if (s->sem_val < 0) {
+        e->env_status = ENV_NOT_RUNNABLE;
+
+        // enqueue
+        if (QUEUE_ISFULL(s->sem_queueHead, s->sem_queueTail, SEM_MAXBLOCK)) {
+            panic("BlockQueue is full when doing P on %d from 0x%x!\n", sem_id, e->env_id);
+        }
+        s->sem_blockQueue[s->sem_queueTail] = e;
+        s->sem_queueTail = (s->sem_queueTail + 1) % SEM_MAXBLOCK;
+        return SEM_SUCC_YIELD;
+    }
+
+    return SEM_SUCC_NOYIELD;
+}
+
+int sem_V_Operation(int sem_id) {
+    int r;
+    struct Env *e;
+    struct Semaphore *s;
+    r = getSem(sem_id, &s);
+    if (r < 0) {
+        return r;
+    }
+
+    s->sem_val++;
+    if (s->sem_val <= 0) {
+        // deque
+        if (QUEUE_ISEMPTY(s->sem_queueHead, s->sem_queueTail)) {
+            // panic("WTF? Empty queue with a sem < 0");
+            return SEM_SUCC_NOYIELD;
+        }
+        e = s->sem_blockQueue[s->sem_queueHead];
+        s->sem_queueHead = (s->sem_queueHead + 1) % SEM_MAXBLOCK;
+        return SEM_SUCC_YIELD;
+    }
+    return SEM_SUCC_NOYIELD;
+}
+
+int sen_getVal(int sem_id) {
+    int r;
+    struct Semaphore *s;
+    r = getSem(sem_id, &s);
+    if (r < 0) {
+        return r;
+    }
+
+    return s->sem_val;
+}
+
+int sem_release(int sem_id) {
+    int r;
+    struct Env *e;
+    struct Semaphore *s;
+    r = getSem(sem_id, &s);
+    if (r < 0) {
+        return r;
+    }
+
+    while (!QUEUE_ISEMPTY(s->sem_queueHead, s->sem_queueTail)) {
+        e = s->sem_blockQueue[s->sem_queueHead];
+        s->sem_queueHead = (s->sem_queueHead + 1) % SEM_MAXBLOCK;
+        env_free(e);
+    }
+
+    s->sem_id = 0;
+    s->sem_queueHead = 0;
+    s->sem_queueTail = 0;
+    s->sem_val = 0;
+    s->sem_status = SEM_FREE;
+
+    return 0;
+}
+/* ===================== Lab-6 Extra Ends ===================== */
 
 /* Overview:
  *  This function is for making an unique ID for every env.

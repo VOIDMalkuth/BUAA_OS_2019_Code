@@ -8,6 +8,36 @@
 #include "trap.h"
 #include "mmu.h" 
 
+/* ===================== Lab-6 Extra Begin ===================== */
+#define SEM_MAXBLOCK 10
+#define SEM_MAXSEM 5
+#define SEM_LOG2NSEM 3
+
+struct Semaphore {
+	u_int sem_id;
+	u_int sem_status;
+	u_int sem_lock;		// NOT_IMPLEMENTED: useful only in multicore, use asm `ll` and `sc`
+	int sem_val;
+	struct Env *sem_blockQueue[SEM_MAXBLOCK + 2];	// Waiting Env Queue
+	u_int sem_queueHead;
+	u_int sem_queueTail;
+};
+
+#define SEM_FREE 0
+#define SEM_ALLOCATED 1
+
+void sem_init();
+u_int sem_alloc(int init_value);
+int sem_P_Operation(int sem_id, struct Env *e);
+int sem_V_Operation(int sem_id);
+int sen_getVal(int sem_id);
+int sem_release(int sem_id);
+
+#define SEM_SUCC_NOYIELD 0
+#define SEM_SUCC_YIELD 1806
+#define SEM_E_MAX_SEM 3333
+/* ===================== Lab-6 Extra Ends ===================== */
+
 #define LOG2NENV	10
 #define NENV		(1<<LOG2NENV)
 #define ENVX(envid)	((envid) & (NENV - 1))
