@@ -70,6 +70,7 @@ u_int sem_alloc(int init_value) {
     int i = 0;
     for (i = 0; i < SEM_MAXSEM; i++) {
         if (sems[i].sem_status == SEM_FREE) {
+            sems[i].sem_status = SEM_ALLOCATED;
             freeSem = &sems[i];
             break;
         }
