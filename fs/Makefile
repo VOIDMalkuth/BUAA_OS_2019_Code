@@ -79,5 +79,12 @@ endif
 
 clean:
 	rm -rf *~ *.o *.b.c *.b *.x
+	if [ -e "../gxemul/fs.img" ]; then      \
+		rm -rf ../gxemul/fs.img;                        \
+	fi;
+
+	if [ -e "fsformat" ]; then      \
+		rm -f fsformat;                 \
+	fi;
 
 include ../include.mk
