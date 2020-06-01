@@ -7,6 +7,15 @@
 #include <env.h>
 #include <args.h>
 #include <unistd.h>
+
+/* ===================== Lab-6 Extra Begin ===================== */
+int syscall_init_PV_var(int init_value);
+void syscall_P(int pv_id);
+void syscall_V(int pv_id);
+int syscall_check_PV_value(int pv_id);
+void syscall_release_PV_var(int pv_id);
+/* ===================== Lab-6 Extra Ends ===================== */
+
 /////////////////////////////////////////////////////head
 extern void umain();
 extern void libmain();
