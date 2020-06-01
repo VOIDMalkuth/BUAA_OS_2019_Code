@@ -460,3 +460,34 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 	return 0;
 }
 
+/* ===================== Lab-6 Extra Begin ===================== */
+int sys_init_PV_var(int init_value) {
+	u_int id = sem_alloc(init_value);
+	return id;
+}
+
+void sys_P(int pv_id) {
+	int r = sem_P_Operation(pv_id, curenv);
+	if (r == SEM_SUCC_YIELD) {
+		sys_yield();
+	}
+	return;
+}
+
+void sys_V(int pv_id) {
+	int r = sem_V_Operation(pv_id);
+	if (r == SEM_SUCC_YIELD) {
+		sys_yield();
+	}
+	return;
+}
+
+int sys_check_PV_value(int pv_id) {
+	return sen_getVal(pv_id);
+}
+
+void sys_release_PV_var(int pv_id) {
+	int r = sem_release(pv_id);
+	return;
+}
+/* ===================== Lab-6 Extra Ends ===================== */
