@@ -37,13 +37,13 @@ u_int mksemid(struct Semaphore *s) {
 u_int getSem(u_int sem_id, struct Semaphore **s) {
     u_int idx = sem_id & 0x7;
     if (idx < 0 || idx >= SEM_MAXSEM) {
-        s = NULL;
+        *s = NULL;
         return -E_INVAL;
     }
 
     struct Semaphore *sem = &sems[idx];
     if(sem->sem_status != SEM_ALLOCATED || sem->sem_id != sem_id) {
-        s = NULL;
+        *s = NULL;
         return -E_INVAL;
     }
 
