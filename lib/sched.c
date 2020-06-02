@@ -2,79 +2,102 @@
 #include <pmap.h>
 #include <printf.h>
 
-int syscall_sched_forceReSchedule = 0;
-
 /* Overview:
  *  Implement simple round-robin scheduling.
- *
+ *  Search through 'envs' for a runnable environment ,
+ *  in circular fashion statrting after the previously running env,
+ *  and switch to the first such environment found.
  *
  * Hints:
- *  1. The variable which is for counting should be defined as 'static'.
- *  2. Use variable 'env_sched_list', which is a pointer array.
- *  3. CANNOT use `return` statement!
+ *  The variable which is for counting should be defined as 'static'.
  */
-/*** exercise 3.14 ***/
+/*
 void sched_yield(void)
 {
-    static int count = 0; // remaining time slices of current env
-    static int point = 0; // current env_sched_list index
-    
-    /*  hint:
-     *  1. if (count==0), insert `e` into `env_sched_list[1-point]`
-     *     using LIST_REMOVE and LIST_INSERT_TAIL.
-     *  2. if (env_sched_list[point] is empty), point = 1 - point;
-     *     then search through `env_sched_list[point]` for a runnable env `e`, 
-     *     and set count = e->env_pri
-     *  3. count--
-     *  4. env_run()
-     *
-     *  functions or macros below may be used (not all):
-     *  LIST_INSERT_TAIL, LIST_REMOVE, LIST_FIRST, LIST_EMPTY
-     */
+	static u_long count = 0;
+	while (1) {
+		count = (count + 1) % NENV;
+		if (envs[count].env_status == ENV_RUNNABLE) {
+			env_run(envs + count);
+			return;
+		}
+	}
+}
+*/
+/*
+void sched_yield(void)
+{
+	static int count = 0;
+	static int x = 0;
+	static struct Env *cur;
+	static int cur_env_pri;
+	cur = LIST_FIRST(&env_sched_list[x]);
+	//cur_env_pri = cur->env_pri;
+	if (cur != NULL && count < cur->env_pri && cur->env_status == ENV_RUNNABLE) {
+		count++;
+	} else {
+		do {
+			if (cur != NULL){
+				count = 1;
+				LIST_REMOVE(cur, env_sched_link);
+				LIST_INSERT_HEAD(&env_sched_list[1-x], cur, env_sched_link);
+			}
+			if (LIST_FIRST(&env_sched_list[x]) == NULL) {
+				x = 1 - x;
+			}
+			cur = LIST_FIRST(&env_sched_list[x]);
+			//cur_env_pri = cur->env_pri;
+		} while (cur == NULL || cur->env_status != ENV_RUNNABLE);
+	}
+	if (cur != NULL){
+		env_run(cur);
+	}
+}
+*/
 
-    if (syscall_sched_forceReSchedule) {
-        count = 0;
-        syscall_sched_forceReSchedule = 0;
-    }
-    
-    struct Env *e = curenv;
-    if (count != 0 && e != NULL && e->env_status == ENV_RUNNABLE) {
-        count--;
-        env_run(e);
-    } else if (e != NULL) {
-        LIST_REMOVE(e, env_sched_link);
-        LIST_INSERT_TAIL(&env_sched_list[1 - point], e, env_sched_link);
-    }
+int syscall_sched_forceReSchedule = 0;
 
-    // reschedule
-    e = LIST_FIRST(&env_sched_list[point]);
-
-    if (LIST_EMPTY(&env_sched_list[point])) {
-        point = 1 - point;
-    }
-    
-    do {
-        e = LIST_FIRST(&env_sched_list[point]);
-        if (e != NULL && e->env_status == ENV_NOT_RUNNABLE) {
-            LIST_REMOVE(e, env_sched_link);
-            LIST_INSERT_TAIL(&env_sched_list[1 - point], e, env_sched_link);
-        } else if (e != NULL && e->env_status == ENV_FREE) {
-            LIST_REMOVE(e, env_sched_link);
-        }
-
-        if (LIST_EMPTY(&env_sched_list[point])) {
-            point = 1 - point;
-        }
-    } while (e != NULL && e->env_status != ENV_RUNNABLE);
-
-    if (LIST_EMPTY(&env_sched_list[0]) && LIST_EMPTY(&env_sched_list[1])) {
-        //continue;
-        panic("Empty Schedule List");
-    }
-
-    assert(e != NULL);
-    assert(e->env_status == ENV_RUNNABLE);
-
-    count = e->env_pri - 1;
+void sched_yield(void)
+{
+    int i;
+    static int pos = 0;
+    static int times = 0;
+    static struct Env *e;
+    if(--times <= 0){
+    	do {
+        	if(LIST_EMPTY(&env_sched_list[pos]))
+        	{
+            	pos = 1 - pos;
+       		}
+        	e = LIST_FIRST(&env_sched_list[pos]);
+			if (e != NULL) {
+        		LIST_REMOVE(e, env_sched_link);
+        		LIST_INSERT_HEAD(&env_sched_list[1-pos], e, env_sched_link);
+        		times = e->env_pri;
+			}
+    	}
+		while(e == NULL || e->env_status != ENV_RUNNABLE);
+	}
     env_run(e);
 }
+
+/*
+void sched_yield(void)
+{
+	static int cur_time=0;
+    static int x=0;
+    static struct Env *cur = 0;
+    while(cur_time==0 || (cur && cur->env_status != ENV_RUNNABLE)){
+        if((LIST_FIRST(&env_sched_list[x]))==NULL){
+            x = 1-x;
+        }
+        cur = LIST_FIRST(&env_sched_list[x]);
+        cur_time = cur->env_pri;
+        LIST_REMOVE(cur,env_sched_link);
+        //LIST_INSERT_TAIL(&env_sched_list[1-x],cur,env_sched_link);
+        LIST_INSERT_HEAD(&env_sched_list[1-x],cur,env_sched_link);
+    }
+    cur_time--;
+    env_run(cur);	
+}
+*/
