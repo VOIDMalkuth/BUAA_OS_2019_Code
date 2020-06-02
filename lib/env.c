@@ -540,7 +540,7 @@ env_free(struct Env *e)
     u_int pdeno, pteno, pa;
 
     /* Hint: Note the environment's demise.*/
-    printf("[00000800] free env %08x\n", e->env_id);
+    printf("[%08x] free env %08x\n", curenv ? curenv->env_id : 0, e->env_id);
 
     /* Hint: Flush all mapped pages in the user portion of the address space */
     for (pdeno = 0; pdeno < PDX(UTOP); pdeno++) {
