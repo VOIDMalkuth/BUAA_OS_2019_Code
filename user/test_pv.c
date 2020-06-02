@@ -18,20 +18,21 @@ void umain() {
             i++;
         }
         writef("Env [%x] produced 20, releasing and terminating others...\n");
-        syscall_release_PV_var(sem_id);
-        user_panic("Should Stop all");
+        //syscall_release_PV_var(sem_id);
+        //user_panic("Should Stop all");
     } else {
+        fork();
+        fork();
         fork();
         fork();
         int j = 0;
         while (j < 20) {
-            writef("Try to p\n");
+            writef("[%x] Try to p, pv val = %d \n", env->env_id, syscall_check_PV_value(sem_id));
             syscall_P(sem_id);
             int val = syscall_check_PV_value(sem_id);
             if (val == -3) {
                 user_panic("1111");
             }
-            writef("S-val <%d>\n", syscall_check_PV_value(sem_id));
             j++;
             writef("[%x]Cnsm %d\n", env->env_id, j);
         }
