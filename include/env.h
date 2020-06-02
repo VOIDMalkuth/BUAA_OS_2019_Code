@@ -9,8 +9,8 @@
 #include "mmu.h" 
 
 /* ===================== Lab-6 Extra Begin ===================== */
-#define SEM_MAXBLOCK 10
-#define SEM_MAXSEM 5
+#define SEM_MAXBLOCK 12
+#define SEM_MAXSEM 6
 #define SEM_LOG2NSEM 3
 
 struct Semaphore {
