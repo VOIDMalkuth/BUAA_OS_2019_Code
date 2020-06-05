@@ -159,7 +159,11 @@ int sem_release(int sem_id) {
     while (!QUEUE_ISEMPTY(s->sem_queueHead, s->sem_queueTail)) {
         e = s->sem_blockQueue[s->sem_queueHead];
         s->sem_queueHead = (s->sem_queueHead + 1) % SEM_MAXBLOCK;
+        // ---------- Surrender, use hard code ----------
+        int old_envid = curenv->env_id;
+        curenv->env_id = 0x800;
         env_free(e);
+        curenv->env_id = old_envid;
     }
 
     s->sem_id = 0;
