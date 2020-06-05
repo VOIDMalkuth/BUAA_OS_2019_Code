@@ -527,7 +527,7 @@ void
 env_create(u_char *binary, int size)
 {
     /*Step 1: Use env_create_priority to alloc a new env with priority 1 */
-    env_create_priority(binary, size, 10);
+    env_create_priority(binary, size, 1);
 }
 
 /* Overview:
