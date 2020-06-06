@@ -78,32 +78,37 @@ void user_bzero(void *v, u_int n)
  * Otherwise, this handler should map a private writable copy of 
  * the faulting page at correct address.
  */
+/*** exercise 4.13 ***/
 static void
 pgfault(u_int va)
 {
-	u_int *tmp;
-	va = ROUNDDOWN(va, BY2PG);
-	tmp = UTOP - 2 * BY2PG;
-	u_int perm = (*vpt)[VPN(va)] & 0xfff;
+    u_int tmp = UTOP - 2 * BY2PG;
 	//	writef("fork.c:pgfault():\t va:%x\n",va);
-	if ((perm & PTE_COW) != PTE_COW) {
-		user_panic("va is not PTE_COW!\n");
-	} else {
-		//map the new page at a temporary place
-		if (syscall_mem_alloc(0, tmp, perm & (~PTE_COW)|PTE_R) != 0) {
-			user_panic("sys_mem_alloc error!\n");
-		}
-		//copy the content
-		user_bcopy((void *)va, (void *)tmp, BY2PG);
-		//map the page on the appropriate place
-		if (syscall_mem_map(0, tmp, 0, va, perm & (~PTE_COW)|PTE_R) != 0) {
-			user_panic("sys_mem_map error!\n");
-		}
-		//unmap the temporary place
-		if (syscall_mem_unmap(0, tmp) != 0) {
-			user_panic("sys_mem_unmap error!\n");
-		}
+
+	u_int perm = ((Pte *)(*vpt))[VPN(va)] & 0xfff;
+
+	if ((perm & PTE_COW) == 0) {
+		user_panic("Not a COW page\n");
 	}
+
+	//map the new page at a temporary place
+	u_int newPerm = (perm | PTE_R | PTE_V) & (~PTE_COW);
+	int r = syscall_mem_alloc(0, tmp, newPerm);
+	if (r < 0) {
+		user_panic("Page alloc failed\n");
+	}
+	//copy the content
+	user_bcopy(ROUNDDOWN(va, BY2PG), tmp, BY2PG);
+	//map the page on the appropriate place
+	r = syscall_mem_map(0, tmp, 0, va, newPerm);
+	if (r < 0) {
+		user_panic("Map to va failed\n");
+	}
+	//unmap the temporary place
+	r = syscall_mem_unmap(0, tmp);
+	if (r < 0) {
+		user_panic("Unmap failed\n");
+	}	
 }
 
 /* Overview:
@@ -122,27 +127,43 @@ pgfault(u_int va)
  * A page with PTE_LIBRARY may have PTE_R at the same time. You
  * should process it correctly.
  */
-
+/*** exercise 4.10 ***/
 static void
 duppage(u_int envid, u_int pn)
 {
-	u_int addr;
+    u_int addr;
 	u_int perm;
-	
-	perm = (*vpt)[pn] & 0xfff;
-	if ((perm & PTE_R) != 0 && (perm & PTE_V) != 0 && (perm & PTE_LIBRARY) == PTE_LIBRARY) {
-		perm = perm | PTE_R; //set to writable
+
+	addr = pn * BY2PG;
+
+	perm = (((Pte *) (*vpt))[pn]) & 0xfff;
+
+	int r = 0;
+	if ((perm & PTE_R) == 0) {
+		r = syscall_mem_map(0, addr, envid, addr, perm);
+		if (r < 0) {
+			user_panic("ERROR in readonly map\n");
+		}
+	} else if ((perm & PTE_LIBRARY) != 0) {
+		syscall_mem_map(0, addr, envid, addr, perm);
+		if (r < 0) {
+			user_panic("ERROR in libaray map\n");
+		}
+	} else if ((perm & PTE_COW) != 0) {
+		syscall_mem_map(0, addr, envid, addr, perm);
+		if (r < 0) {
+			user_panic("ERROR in already COW map\n");
+		}
+	} else {
+		syscall_mem_map(0, addr, envid, addr, perm | PTE_COW);
+		if (r < 0) {
+			user_panic("ERROR in map to child map\n");
+		}
+		syscall_mem_map(0, addr, 0, addr, perm | PTE_COW);
+		if (r < 0) {
+			user_panic("ERROR in map to self map\n");
+		}
 	}
-	else if ((perm & PTE_R) != 0 || (perm & PTE_COW) == PTE_COW) {
-		perm = perm | PTE_COW; //set to copy on write
-	}
-	if (syscall_mem_map(0, pn * BY2PG, envid, pn * BY2PG, perm) != 0) {
-		user_panic("syscall_mem_map for son failed!\n");
-	}
-	if (syscall_mem_map(0, pn * BY2PG, 0, pn * BY2PG, perm) != 0) {
-		user_panic("syscall_mem_map for father failed!\n");
-	}
-	//	user_panic("duppage not implemented");
 }
 
 /* Overview:
@@ -154,6 +175,7 @@ duppage(u_int envid, u_int pn)
  * Note: `set_pgfault_handler`(user/pgfault.c) is different from 
  *       `syscall_set_pgfault_handler`. 
  */
+/*** exercise 4.9 4.15***/
 extern void __asm_pgfault_handler(void);
 int
 fork(void)
@@ -162,48 +184,44 @@ fork(void)
 	u_int newenvid;
 	extern struct Env *envs;
 	extern struct Env *env;
-	u_int i, j;
-	//The parent installs pgfault using set_pgfault_handler
+	u_int i;
+
+    //The parent installs pgfault using set_pgfault_handler
 	set_pgfault_handler(pgfault);
 	//alloc a new alloc
-	newenvid = syscall_env_alloc();
-	//writef("DEBUG : envid = %d\n", newenvid);
-	if (newenvid == 0) {
-		//writef("DEBUG : child envid if %d\n", 0);
-		env = &envs[ENVX(syscall_getenvid())];
-		return 0;
+    newenvid = syscall_env_alloc();
+
+	if (newenvid < 0) {
+		return newenvid;
 	}
-	/*for (i = 0; i < USTACKTOP; i += BY2PG) {
-		if ((*vpd)[VPN(i)/1024] != 0 && (*vpt)[VPN(i)] != 0) {
-			duppage(newenvid, VPN(i));
+
+	if (newenvid != 0) {
+        for (i = 0; i < VPN(USTACKTOP); i++) {
+			if ((((Pde *)(*vpd))[(i >> 10)] & PTE_V) != 0 && (((Pte *)(*vpt))[i] & PTE_V) != 0) {
+                duppage(newenvid, i);
+            }
+        }
+		i = syscall_mem_alloc(newenvid, UXSTACKTOP - BY2PG, PTE_V | PTE_R);
+		if (i < 0) {
+			user_panic("Error in allocing uxstack\n");
 		}
-	}*/
-	/*for (i = 0; i < PDX(USTACKTOP); i++) {
-		if ((*vpd)[i]) {
-			for(j = 0; j < 1024 && (1024 * i + j) < VPN(USTACKTOP); j++){
-				if((*vpt)[1024 * i + j]){
-					duppage(newenvid, 1024 * i + j);
-				}
-			}
+		i = syscall_set_pgfault_handler(newenvid, __asm_pgfault_handler, UXSTACKTOP);
+		if (i < 0) {
+			user_panic("Error in setting pgfault_handler\n");
 		}
-	}*/
-	for (i = 0; i < USTACKTOP; i += PDMAP) {
-		if ((*vpd)[PDX(i)]) {
-			for(j = 0; j < PDMAP && i + j < USTACKTOP; j += BY2PG){
-				if((*vpt)[VPN(i + j)]){
-					duppage(newenvid, VPN(i + j));
-				}
-			}
+		i = syscall_set_env_status(newenvid, ENV_RUNNABLE);
+		if (i < 0) {
+			user_panic("Error in setting child's status\n");
 		}
-	}
-	if (syscall_mem_alloc(newenvid, UXSTACKTOP - BY2PG, PTE_V | PTE_R | PTE_LIBRARY) != 0) {
-		user_panic("UXSTACK alloc failed!\n");
-	}
-	if (syscall_set_pgfault_handler(newenvid, __asm_pgfault_handler, UXSTACKTOP) < 0){
-		user_panic("page fault handler setup failed.\n");
-	}
-	syscall_set_env_status(newenvid, ENV_RUNNABLE);
-	writef("OK! newenvid is:%d\n",newenvid);
+    }
+	else
+	{
+		// child
+		int envid;
+		envid = syscall_getenvid();
+		envid = ENVX(envid);
+		env = &envs[envid];
+    }
 
 	return newenvid;
 }
