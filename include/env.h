@@ -34,7 +34,7 @@ int sen_getVal(int sem_id);
 int sem_release(int sem_id);
 
 #define SEM_SUCC_NOYIELD 0
-#define SEM_SUCC_YIELD 0
+#define SEM_SUCC_YIELD 1806
 #define SEM_E_MAX_SEM 3333
 /* ===================== Lab-6 Extra Ends ===================== */
 
