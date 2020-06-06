@@ -34,7 +34,7 @@ u_int mksemid(struct Semaphore *s) {
     return (++next_sem_id << (SEM_LOG2NSEM)) | idx;
 }
 
-u_int getSem(u_int sem_id, struct Semaphore **s) {
+int getSem(u_int sem_id, struct Semaphore **s) {
     u_int idx = sem_id & 0x7;
     if (idx < 0 || idx >= SEM_MAXSEM) {
         *s = NULL;
@@ -64,7 +64,7 @@ void sem_init() {
     return;
 }
 
-u_int sem_alloc(int init_value) {
+int sem_alloc(int init_value) {
     struct Semaphore *freeSem = NULL;
 
     int i = 0;

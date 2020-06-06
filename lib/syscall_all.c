@@ -462,7 +462,7 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 
 /* ===================== Lab-6 Extra Begin ===================== */
 int sys_init_PV_var(int sysno, int init_value) {
-	u_int id = sem_alloc(init_value);
+	int id = sem_alloc(init_value);
 	return id;
 }
 

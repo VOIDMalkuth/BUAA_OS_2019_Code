@@ -27,7 +27,7 @@ struct Semaphore {
 #define SEM_ALLOCATED 1
 
 void sem_init();
-u_int sem_alloc(int init_value);
+int sem_alloc(int init_value);
 int sem_P_Operation(int sem_id, struct Env *e);
 int sem_V_Operation(int sem_id);
 int sen_getVal(int sem_id);
