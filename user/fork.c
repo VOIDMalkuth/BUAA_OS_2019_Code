@@ -196,11 +196,21 @@ fork(void)
 	}
 
 	if (newenvid != 0) {
-        for (i = 0; i < VPN(USTACKTOP); i++) {
+        /*for (i = 0; i < VPN(USTACKTOP); i++) {
 			if ((((Pde *)(*vpd))[(i >> 10)] & PTE_V) != 0 && (((Pte *)(*vpt))[i] & PTE_V) != 0) {
                 duppage(newenvid, i);
             }
-        }
+        }*/
+        u_int j = 0;
+        for (i = 0; i < USTACKTOP; i += PDMAP) {
+		if ((*vpd)[PDX(i)]) {
+			for(j = 0; j < PDMAP && i + j < USTACKTOP; j += BY2PG){
+				if((*vpt)[VPN(i + j)]){
+					duppage(newenvid, VPN(i + j));
+				}
+			}
+		}
+	    }
 		i = syscall_mem_alloc(newenvid, UXSTACKTOP - BY2PG, PTE_V | PTE_R);
 		if (i < 0) {
 			user_panic("Error in allocing uxstack\n");
