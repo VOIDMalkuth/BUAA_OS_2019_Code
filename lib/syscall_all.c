@@ -488,7 +488,6 @@ int sys_check_PV_value(int sysno, int pv_id) {
 
 void sys_release_PV_var(int sysno, int pv_id) {
 	int r = sem_release(pv_id);
-	sys_yield();
-    return;
+	return;
 }
 /* ===================== Lab-6 Extra Ends ===================== */
