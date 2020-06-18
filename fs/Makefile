@@ -24,7 +24,9 @@ FSLIB :=	fs.o \
 		ide.o \
 		test.o
 
-USERAPPS :=  $(user_dir)/num.b  \
+USERAPPS :=  $(user_dir)/clg_directRead.b  \
+			 $(user_dir)/clg_directWrite.b \
+			 $(user_dir)/num.b \
 			 $(user_dir)/echo.b \
 			 $(user_dir)/ls.b \
 			 $(user_dir)/sh.b  \
