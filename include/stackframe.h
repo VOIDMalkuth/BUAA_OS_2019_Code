@@ -90,8 +90,8 @@
 .macro RESTORE_SOME                                      
 		.set	mips1                            
 		mfc0	t0,CP0_STATUS                    
-		ori	t0,0x3                          
-		xori	t0,0x3                          
+		ori	t0,0x1                          
+		xori	t0,0x1                          
 		mtc0	t0,CP0_STATUS                    
 		lw	v0,TF_STATUS(sp)             
 		li	v1, 0xff00 				 

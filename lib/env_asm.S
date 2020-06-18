@@ -21,8 +21,8 @@ LEAF(env_pop_tf)
 
 
 		mfc0	t0,CP0_STATUS                    
-		ori	t0,0x3                          
-		xori	t0,0x3                          
+		ori	t0,0x1                          
+		xori	t0,0x1                          
 		mtc0	t0,CP0_STATUS                    
 				 
 		lw	v1,TF_LO(k0)                                       

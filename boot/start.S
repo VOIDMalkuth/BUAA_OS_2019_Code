@@ -53,8 +53,9 @@ LEAF(_start)
     .set    mips2
     .set    reorder
 
+    li t0, 0x10000002
     /* Disable interrupts */
-    mtc0    zero, CP0_STATUS
+    mtc0    t0, CP0_STATUS
 
     /* Disable watch exception. */
     mtc0    zero, CP0_WATCHLO

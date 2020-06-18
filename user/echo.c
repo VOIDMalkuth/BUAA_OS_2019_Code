@@ -4,7 +4,6 @@ void
 umain(int argc, char **argv)
 {
     int i, nflag;
-
     nflag = 0;
     if (argc > 1 && strcmp(argv[1], "-n") == 0) {
         nflag = 1;

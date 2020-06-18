@@ -7,6 +7,8 @@ extern void handle_reserved();
 extern void handle_tlb();
 extern void handle_sys();
 extern void handle_mod();
+extern void handle_ades();
+extern void handle_adel();
 unsigned long exception_handlers[32];
 
 void trap_init()
@@ -21,6 +23,8 @@ void trap_init()
     set_except_vector(1, handle_mod);
     set_except_vector(2, handle_tlb);
     set_except_vector(3, handle_tlb);
+    set_except_vector(4, handle_adel);
+    set_except_vector(5, handle_ades);
     set_except_vector(8, handle_sys);
 }
 void *set_except_vector(int n, void *addr)
@@ -45,6 +49,15 @@ struct pgfault_trap_frame {
     u_int empty5;
 };
 
+void
+ades_handler(struct Trapframe *tf) {
+    panic("storing to a wrong address, are you trying to write to kseg in user mode?\n");
+}
+
+void
+adel_handler(struct Trapframe *tf) {
+    panic("loading from a wrong address, are you trying to read from kseg in user mode?\n");
+}
 
 /*** exercise 4.11 ***/
 void
