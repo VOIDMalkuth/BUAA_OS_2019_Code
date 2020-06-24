@@ -110,7 +110,9 @@ pgfault(u_int va)
 		user_panic("Unmap failed\n");
 	}
     
-    u_int *pc = (u_int *) env->env_tf.pc;
+    struct Trapframe *tfaddr = (void *)env->env_xstacktop - sizeof(struct Trapframe);
+
+	u_int *pc = (u_int *) tfaddr->cp0_epc;
 	u_int instr = *pc;
 	u_int opcode = (instr >> 26) & 0x3f;
 	u_int rs = (instr >> 21) & 0x1f;
