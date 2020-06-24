@@ -21,8 +21,8 @@ void mips_init()
 	// Lab 3 user environment initialization functions
 	env_init();
 	
-    ENV_CREATE(user_fstest);
-    ENV_CREATE(fs_serv);
+    ENV_CREATE(user_test5a);
+    //ENV_CREATE(fs_serv);
     
     // initialize exception vector.
 	trap_init();

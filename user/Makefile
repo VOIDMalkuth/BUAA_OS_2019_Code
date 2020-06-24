@@ -20,11 +20,12 @@ USERLIB := printf.o \
 		pipe.o \
 		fsipc.o \
 		console.o \
+        dev_cons.o \
 		fprintf.o
 
 CFLAGS += -nostdlib -static
 
-all: fktest.x fktest.b pingpong.x pingpong.b idle.x fstest.x fstest.b $(USERLIB) entry.o syscall_wrap.o
+all: test5a.x test5a.b fktest.x fktest.b pingpong.x pingpong.b idle.x fstest.x fstest.b $(USERLIB) entry.o syscall_wrap.o
 
 %.x: %.b.c
 	echo cc1 $<

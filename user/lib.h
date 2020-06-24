@@ -7,6 +7,10 @@
 #include <env.h>
 #include <args.h>
 #include <unistd.h>
+
+void uwritef(char *fmt, ...);
+int ugetStr(char *buff);
+
 /////////////////////////////////////////////////////head
 extern void umain();
 extern void libmain();
