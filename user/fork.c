@@ -240,7 +240,7 @@ sfork(void)
 extern u_int usrgetsp();
 
 u_int user_getsp() {
-	u_int result = usrgetsp() - 4;
+	u_int result = usrgetsp();
 	result = ROUNDDOWN(result, BY2PG);
     return result;
 }
