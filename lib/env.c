@@ -427,6 +427,10 @@ env_destroy(struct Env *e)
 {
     /* Hint: free e. */
     env_free(e);
+    
+    printf("%08x envid\n", e->env_id); 
+    printf("%08x pgfault_out\n", e->env_nop);
+    printf("%08x pgfault_cow\n", e->env_runs);
 
     /* Hint: schedule to run a new environment. */
     if (curenv == e) {

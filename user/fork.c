@@ -108,7 +108,16 @@ pgfault(u_int va)
 	r = syscall_mem_unmap(0, tmp);
 	if (r < 0) {
 		user_panic("Unmap failed\n");
-	}	
+	}
+    
+    u_int *pc = (u_int *) env->env_tf.pc;
+	u_int instr = *pc;
+	u_int opcode = (instr >> 26) & 0x3f;
+	u_int rs = (instr >> 21) & 0x1f;
+	u_int rt = (instr >> 16) & 0x1f;
+	env->env_runs++;
+	writef("Env: 0x%x, Instr: 0x%x, opcode: %b, reg_rs: %d, reg_rt: %d, OUT_count: %d, COW_count: %d\n",
+		   env->env_id, instr, opcode, rs, rt, env->env_nop, env->env_runs);
 }
 
 /* Overview:
