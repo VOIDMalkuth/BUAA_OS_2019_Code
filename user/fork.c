@@ -273,7 +273,7 @@ thread_duppage(u_int envid, u_int pn)
 			user_panic("ERROR in already COW map\n");
 		}
 	} else if (addr < user_getsp()) {
-		r = syscall_mem_map(0, addr, envid, addr, perm | PTE_LIBRARY);
+		r = syscall_mem_map(0, addr, envid, addr, perm);
 		if (r < 0) {
 			user_panic("ERROR in less than sp map\n");
 		}
