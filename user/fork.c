@@ -233,3 +233,58 @@ sfork(void)
 	user_panic("sfork not implemented");
 	return -E_INVAL;
 }
+
+// Lab4Exam-a
+u_int user_getsp() {
+	u_int result = usrgetsp();
+	return result;
+}
+
+int
+thread_fork(void)
+{
+	// Your code here.
+	u_int newenvid;
+	extern struct Env *envs;
+	extern struct Env *env;
+	u_int i;
+
+    //The parent installs pgfault using set_pgfault_handler
+	set_pgfault_handler(pgfault);
+	//alloc a new alloc
+    newenvid = syscall_env_alloc();
+
+	if (newenvid < 0) {
+		return newenvid;
+	}
+
+	if (newenvid != 0) {
+        for (i = 0; i < VPN(USTACKTOP); i++) {
+			if ((((Pde *)(*vpd))[(i >> 10)] & PTE_V) != 0 && (((Pte *)(*vpt))[i] & PTE_V) != 0) {
+                duppage(newenvid, i);
+            }
+        }
+		i = syscall_mem_alloc(newenvid, UXSTACKTOP - BY2PG, PTE_V | PTE_R);
+		if (i < 0) {
+			user_panic("Error in allocing uxstack\n");
+		}
+		i = syscall_set_pgfault_handler(newenvid, __asm_pgfault_handler, UXSTACKTOP);
+		if (i < 0) {
+			user_panic("Error in setting pgfault_handler\n");
+		}
+		i = syscall_set_env_status(newenvid, ENV_RUNNABLE);
+		if (i < 0) {
+			user_panic("Error in setting child's status\n");
+		}
+    }
+	else
+	{
+		// child
+		int envid;
+		envid = syscall_getenvid();
+		envid = ENVX(envid);
+		env = &envs[envid];
+    }
+
+	return newenvid;
+}

@@ -7,6 +7,11 @@
 #include <env.h>
 #include <args.h>
 #include <unistd.h>
+
+// Lab4Exam-a
+u_int user_getsp();
+int thread_fork(void);
+
 /////////////////////////////////////////////////////head
 extern void umain();
 extern void libmain();

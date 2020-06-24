@@ -10,3 +10,8 @@ LEAF(msyscall)
     nop
 END(msyscall)
 
+LEAF(usrgetsp)
+    addu v0, zero, sp
+    jr ra
+    nop
+END(usrgetsp)
