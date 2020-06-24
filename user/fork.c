@@ -235,9 +235,57 @@ sfork(void)
 }
 
 // Lab4Exam-a
+#define ROUNDDOWN(a, n)	(((u_long)(a)) & ~((n)-1))
+
+extern u_int usrgetsp();
+
 u_int user_getsp() {
 	u_int result = usrgetsp();
-	return result;
+	result = ROUNDDOWN(result, BY2PG);
+    return result;
+}
+
+static void
+thread_duppage(u_int envid, u_int pn)
+{
+    u_int addr;
+	u_int perm;
+
+	addr = pn * BY2PG;
+
+	perm = (((Pte *) (*vpt))[pn]) & 0xfff;
+
+	int r = 0;
+	if ((perm & PTE_R) == 0) {
+		r = syscall_mem_map(0, addr, envid, addr, perm);
+		if (r < 0) {
+			user_panic("ERROR in readonly map\n");
+		}
+	} else if ((perm & PTE_LIBRARY) != 0) {
+		r = syscall_mem_map(0, addr, envid, addr, perm);
+		if (r < 0) {
+			user_panic("ERROR in libaray map\n");
+		}
+	} else if (addr < user_getsp()) {
+		r = syscall_mem_map(0, addr, envid, addr, perm);
+		if (r < 0) {
+			user_panic("ERROR in less than sp map\n");
+		}
+	} else if ((perm & PTE_COW) != 0) {
+		r = syscall_mem_map(0, addr, envid, addr, perm);
+		if (r < 0) {
+			user_panic("ERROR in already COW map\n");
+		}
+	} else {
+		r = syscall_mem_map(0, addr, envid, addr, perm | PTE_COW);
+		if (r < 0) {
+			user_panic("ERROR in map to child map\n");
+		}
+		r = syscall_mem_map(0, addr, 0, addr, perm | PTE_COW);
+		if (r < 0) {
+			user_panic("ERROR in map to self map\n");
+		}
+	}
 }
 
 int
@@ -261,7 +309,7 @@ thread_fork(void)
 	if (newenvid != 0) {
         for (i = 0; i < VPN(USTACKTOP); i++) {
 			if ((((Pde *)(*vpd))[(i >> 10)] & PTE_V) != 0 && (((Pte *)(*vpt))[i] & PTE_V) != 0) {
-                duppage(newenvid, i);
+                thread_duppage(newenvid, i);
             }
         }
 		i = syscall_mem_alloc(newenvid, UXSTACKTOP - BY2PG, PTE_V | PTE_R);
