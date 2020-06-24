@@ -42,6 +42,6 @@ int ugetStr(char *buff) {
 		buff[n++] = c;
 		syscall_write_dev(&c, 0x10000000, 1);
 	}
-	buff[n++] = '\0';
+	buff[n] = '\0';
 	return n;
 }
