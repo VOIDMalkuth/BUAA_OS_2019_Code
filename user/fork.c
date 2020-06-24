@@ -267,15 +267,7 @@ thread_duppage(u_int envid, u_int pn)
 			user_panic("ERROR in libaray map\n");
 		}
 	} else if ((perm & PTE_COW) != 0) {
-        if (addr < user_getsp()) {
-            u_int old = *(u_int *)addr;
-            *(u_int *)addr = 1;
-            *(u_int *)addr = old;
-            r = syscall_mem_map(0, addr, envid, addr, perm | PTE_LIBRARY);
-            if (r < 0) {
-                user_panic("ERROR in less than sp COW map\n");
-            }
-        }
+        pgfault(addr);
 		r = syscall_mem_map(0, addr, envid, addr, perm);
 		if (r < 0) {
 			user_panic("ERROR in already COW map\n");
