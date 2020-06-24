@@ -20,6 +20,33 @@ struct Dev devfile = {
 	.dev_stat =	file_stat,
 };
 
+int remove_on_open(int fdnum){
+	int r;
+	struct Fd *fd;
+	struct Filefd *ffd;
+	u_int va, size, fileid;
+	u_int i;
+
+	ffd = (struct Filefd *)fd;
+	fileid = ffd->f_fileid;
+	size = ffd->f_file.f_size;
+
+	if ((r = fd_lookup(fdnum, &fd)) < 0) {
+		return r;
+	}
+
+	if (fd->fd_dev_id != devfile.dev_id) {
+		return -E_INVAL;
+	}
+
+	if((ffd->f_fd.fd_omode & O_RMONLY) == 0) {
+		return -E_INVAL;
+	}
+
+	fsipc_remove(ffd->f_file.f_path);
+	return 0;
+}
+
 
 // Overview:
 //	Open a file (or directory).

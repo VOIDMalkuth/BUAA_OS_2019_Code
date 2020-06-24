@@ -646,6 +646,8 @@ walk_path(char *path, struct File **pdir, struct File **pfile, char *lastelem)
 	char name[MAXNAMELEN];
 	struct File *dir, *file;
 	int r;
+    
+    char *oldpath = path;
 
 	// start at the root.
 	path = skip_slash(path);
@@ -700,8 +702,9 @@ walk_path(char *path, struct File **pdir, struct File **pfile, char *lastelem)
 	if (pdir) {
 		*pdir = dir;
 	}
-
+    
 	*pfile = file;
+    user_bcopy(oldpath, file->f_path, MIN(40, (path - oldpath)));
 	return 0;
 }
 
