@@ -39,11 +39,18 @@ int remove_on_open(int fdnum){
 		return -E_INVAL;
 	}
 
-	if((ffd->f_fd.fd_omode & O_RMONLY) == 0) {
+	int mode = ffd->f_fd.fd_omode;
+	char mypath[50];
+	user_bcopy(ffd->f_file.f_path, mypath, 40);
+	mypath[39] = '\0';
+
+	close(fdnum);
+
+	if((mode & O_RMONLY) == 0) {
 		return -E_INVAL;
 	}
 
-	fsipc_remove(ffd->f_file.f_path);
+	fsipc_remove(mypath);
 	return 0;
 }
 
