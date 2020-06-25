@@ -461,9 +461,24 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 }
 
 int isValidDev(u_int addr, u_int len) {
-	return (addr >= 0x10000000 && addr + len <= 0x10000020) ||
+	int v = (addr >= 0x10000000 && addr + len <= 0x10000020) ||
 		   (addr >= 0x13000000 && addr + len <= 0x13004200) ||
 		   (addr >= 0x15000000 && addr + len <= 0x15000200);
+	if (!v) {
+		return 0;
+	}
+
+	if (curenv->env_id == 0x1001) { // fs
+		if (!(addr >= 0x13000000 && addr + len <= 0x13004200)) {
+			return 0;
+		}
+	} else {
+		if (addr >= 0x13000000 && addr + len <= 0x13004200) {
+			return 0;
+		}
+	}
+
+	return 1;
 }
 
 /* Overview:
