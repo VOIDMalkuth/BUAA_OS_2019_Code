@@ -51,8 +51,8 @@ struct pgfault_trap_frame {
 
 void
 ades_handler(struct Trapframe *tf) {
-    printf("storing to a wrong address, are you trying to write to kseg in user mode?\n");
-    printf("! Terminating process\n");
+    printf("\033[1;31m[Kernel]\033[0m storing to a wrong address, are you trying to write to kseg in user mode?\n");
+    printf("\033[1;31m[Kernel]\033[0m >>> Terminating process\n");
     env_destroy(curenv);
     curenv = NULL;
     sys_yield();
@@ -60,8 +60,8 @@ ades_handler(struct Trapframe *tf) {
 
 void
 adel_handler(struct Trapframe *tf) {
-    printf("loading from a wrong address, are you trying to read from kseg in user mode?\n");
-    printf("! Terminating process\n");
+    printf("\033[1;31m[Kernel]\033[0m loading from a wrong address, are you trying to read from kseg in user mode?\n");
+    printf("\033[1;31m[Kernel]\033[0m >>> Terminating process\n");
     env_destroy(curenv);
     curenv = NULL;
     sys_yield();
