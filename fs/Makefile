@@ -35,7 +35,7 @@ USERAPPS :=  $(user_dir)/clg_directRead.b  \
 		 $(user_dir)/testptelibrary.b
 
 
-FSIMGFILES := motd newmotd $(user_dir)/testarg.b $(user_dir)/init.b $(USERAPPS)
+FSIMGFILES := l5clg.sh motd newmotd $(user_dir)/testarg.b $(user_dir)/init.b $(USERAPPS)
 
 CFLAGS += -nostdlib -static
 
