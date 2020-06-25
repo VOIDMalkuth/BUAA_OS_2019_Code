@@ -55,7 +55,12 @@ cons_read(struct Fd *fd, void *vbuf, u_int n, u_int offset)
 	while ((c = syscall_cgetc()) == 0)
 		syscall_yield();
 
-	if (c!='\r') 
+	if (c == 127) {
+        c = '\b';
+        writef("\b ");
+    }
+
+    if (c!='\r') 
 		writef("%c",c);
 	else
 		writef("\n");
