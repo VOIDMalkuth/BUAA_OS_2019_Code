@@ -24,7 +24,10 @@ FSLIB :=	fs.o \
 		ide.o \
 		test.o
 
-USERAPPS :=  $(user_dir)/num.b  \
+USERAPPS :=  $(user_dir)/clg_directRead.b  \
+			 $(user_dir)/clg_directWrite.b \
+			 $(user_dir)/clg_sctest.b \
+			 $(user_dir)/num.b \
 			 $(user_dir)/echo.b \
 			 $(user_dir)/ls.b \
 			 $(user_dir)/sh.b  \
@@ -32,7 +35,7 @@ USERAPPS :=  $(user_dir)/num.b  \
 		 $(user_dir)/testptelibrary.b
 
 
-FSIMGFILES := motd newmotd $(user_dir)/testarg.b $(user_dir)/init.b $(USERAPPS)
+FSIMGFILES := l5clg.sh motd newmotd $(user_dir)/testarg.b $(user_dir)/init.b $(USERAPPS)
 
 CFLAGS += -nostdlib -static
 
