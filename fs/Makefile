@@ -26,6 +26,7 @@ FSLIB :=	fs.o \
 
 USERAPPS :=  $(user_dir)/clg_directRead.b  \
 			 $(user_dir)/clg_directWrite.b \
+			 $(user_dir)/clg_sctest.b \
 			 $(user_dir)/num.b \
 			 $(user_dir)/echo.b \
 			 $(user_dir)/ls.b \
