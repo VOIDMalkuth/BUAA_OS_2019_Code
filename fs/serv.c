@@ -317,7 +317,8 @@ umain(void)
     n = 0x1234;
     r = syscall_write_dev(&n, 0x15000010, 4);
     writef("result is %d, data should be %d\n", r, n);
-
+    
+    n = 0x1;
     writef("NonFS Program Reading RTC\n");
     r = syscall_read_dev(&n, 0x15000010, 4);
     writef("result is %d, data is %d\n", r, n);
