@@ -674,6 +674,15 @@ void pageout(int va, int context)
 {
     u_long r;
     struct Page *p = NULL;
+    
+    if ((va & 0x80000000) != 0) {
+        printf("\033[1;31m[Kernel]\033[0m ERROR! User Process maybe trying to access kernel address!\n");
+        printf("\033[1;31m[Kernel]\033[0m >>> Terminating Process!\n\n");
+        extern struct Env *curenv;
+        env_destroy(curenv);
+        curenv = NULL;
+        sys_yield();
+    }
 
     if (context < 0x80000000) {
         panic("tlb refill and alloc error!");
