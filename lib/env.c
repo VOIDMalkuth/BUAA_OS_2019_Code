@@ -9,6 +9,8 @@
 #include <pmap.h>
 #include <printf.h>
 
+#include <devperm.h>
+
 struct Env *envs = NULL;        // All environments
 struct Env *curenv = NULL;            // the current env
 
@@ -351,18 +353,28 @@ load_icode(struct Env *e, u_char *binary, u_int size)
  */
 /*** exercise 3.8 ***/
 void
-env_create_priority(u_char *binary, int size, int priority)
+env_create_priority_devperm(u_char *binary, int size, int priority, int devperm)
 {
     struct Env *e;
     /*Step 1: Use env_alloc to alloc a new env. */
     env_alloc(&e, 0);
     /*Step 2: assign priority to the new env. */
     e->env_pri = priority;
+
+    // Lab5-Challenge: Set up permission in env_nop
+    e->env_nop = devperm;
+
     /*Step 3: Use load_icode() to load the named elf binary,
       and insert it into env_sched_list using LIST_INSERT_HEAD. */
     load_icode(e, binary, size);
     LIST_INSERT_HEAD(&env_sched_list[0], e, env_sched_link);
     return;
+}
+
+void
+env_create_priority(u_char *binary, int size, int priority)
+{
+    env_create_priority_devperm(binary, size, 1, DEV_CONS | DEV_RTC); // not able to visit ide if it's not fs process
 }
 /* Overview:
  * Allocates a new env with default priority value.

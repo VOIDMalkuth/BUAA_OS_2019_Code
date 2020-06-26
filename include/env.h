@@ -8,6 +8,16 @@
 #include "trap.h"
 #include "mmu.h" 
 
+// Lab5-Challenge
+void env_create_priority_devperm(u_char *binary, int size, int priority, int devperm);
+#define ENV_CREATE_PRIORITY_DEVPERM(x, y, z) \
+{\
+        extern u_char binary_##x##_start[]; \
+        extern u_int binary_##x##_size;\
+        env_create_priority_devperm(binary_##x##_start, \
+                (u_int)binary_##x##_size, y, z);\
+}
+
 #define LOG2NENV	10
 #define NENV		(1<<LOG2NENV)
 #define ENVX(envid)	((envid) & (NENV - 1))

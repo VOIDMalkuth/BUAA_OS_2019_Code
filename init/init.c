@@ -5,6 +5,8 @@
 #include <kclock.h>
 #include <trap.h>
 
+#include <devperm.h>
+
 extern char aoutcode[];
 extern char boutcode[];
 
@@ -29,7 +31,7 @@ void mips_init()
 	//ENV_CREATE(user_testptelibrary);
     ENV_CREATE(user_icode);
     //ENV_CREATE(user_testpiperace);
-	ENV_CREATE(fs_serv);
+	ENV_CREATE_PRIORITY_DEVPERM(fs_serv, 1, DEV_IDE);
     //ENV_CREATE(user_testbss);
 	//ENV_CREATE(user_icode);
 	trap_init();

@@ -6,6 +6,7 @@
 #include <sched.h>
 
 #include <safeprint.h>
+#include <devperm.h>
 
 extern char *KERNEL_SP;
 extern struct Env *curenv;
@@ -302,6 +303,7 @@ int sys_env_alloc(void)
 	e->env_tf.regs[2] = 0;
 	e->env_pri = curenv->env_pri;
     e->env_tf.pc = e->env_tf.cp0_epc;
+    e->env_nop = curenv->env_nop;
     
     return e->env_id;
 }
@@ -463,9 +465,26 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 }
 
 int isValidDev(u_int addr, u_int len) {
-	return (addr >= 0x10000000 && addr + len <= 0x10000020) ||
-		   (addr >= 0x13000000 && addr + len <= 0x13004200) ||
-		   (addr >= 0x15000000 && addr + len <= 0x15000200);
+	int perm = 0;
+	if (curenv == NULL) {
+		perm = DEV_CONS | DEV_IDE | DEV_RTC;
+	} else {
+		perm = curenv->env_nop;
+	}
+
+	if (addr >= 0x10000000 && addr + len <= 0x10000020 && (perm & DEV_CONS) != 0) {
+		return 1;
+	}
+
+	if (addr >= 0x13000000 && addr + len <= 0x13004200 && (perm & DEV_IDE) != 0) {
+		return 1;
+	}
+
+	if (addr >= 0x15000000 && addr + len <= 0x15000200 && (perm & DEV_RTC) != 0) {
+		return 1;
+	}
+	
+	return 0;
 }
 
 /* Overview:
@@ -496,6 +515,7 @@ int isValidDev(u_int addr, u_int len) {
 int sys_write_dev(int sysno, u_int va, u_int dev, u_int len)
 {
     if (!isValidDev(dev, len)) {
+        printf("\033[1;31m[Kernel]\033[0m Invalid write to devices!\n");
 		return -E_INVAL;
 	}
 
@@ -526,6 +546,7 @@ int sys_write_dev(int sysno, u_int va, u_int dev, u_int len)
 int sys_read_dev(int sysno, u_int va, u_int dev, u_int len)
 {
     if (!isValidDev(dev, len)) {
+        printf("\033[1;31m[Kernel]\033[0m Invalid read to devices!\n");
 		return -E_INVAL;
 	}
 
