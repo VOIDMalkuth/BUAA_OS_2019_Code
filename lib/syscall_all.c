@@ -581,3 +581,24 @@ void sys_print_string(int sysno, char *str) {
     
     printf("%s", str);
 }
+
+int sys_grant_devperm(int sysno, u_int envid, u_int newPerm) {
+	int r;
+	struct Env *e;
+
+	// one must be parent process or itself when granting perms
+	r = envid2env(envid, &e, 1);
+	if (r < 0) {
+		return r;
+	}
+
+	u_int currentPerm = (curenv == NULL) ? (DEV_CONS | DEV_IDE | DEV_RTC) : curenv->env_nop;
+
+	// stop if granting permissions that you don't have
+	if (((newPerm | currentPerm) ^ currentPerm) != 0) {
+		return -E_INVAL;
+	}
+
+	e->env_nop = newPerm;
+	return 0;
+}

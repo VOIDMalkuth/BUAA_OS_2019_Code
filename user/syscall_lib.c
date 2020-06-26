@@ -9,6 +9,9 @@ void syscall_print_string(char* str)
 {
 	msyscall(SYS_print_string, str, 0, 0, 0, 0);
 }
+int syscall_grant_devperm(u_int envid, u_int newPerm) {
+	msyscall(SYS_grant_devperm, envid, newPerm, 0, 0, 0);
+}
 /* ========== End of Lab5-Challenge ==========*/
 
 void syscall_putchar(char ch)

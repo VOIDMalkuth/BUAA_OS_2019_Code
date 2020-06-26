@@ -10,6 +10,7 @@
 
 /* ========== Lab5-Challenge ==========*/
 void syscall_print_string(char *str);
+int syscall_grant_devperm(u_int envid, u_int newPerm);
 /* ========== End of Lab5-Challenge ==========*/
 
 /////////////////////////////////////////////////////head
