@@ -548,3 +548,8 @@ int sys_load_icode(int sysno, u_int envid, u_char* binary, u_int size) {
 
 	return r;
 }
+
+/* ========== Lab5-Challenge ==========*/
+void sys_print_string(int sysno, char *str) {
+	printf("%s", str);
+}

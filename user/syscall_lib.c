@@ -4,6 +4,13 @@
 #include <env.h>
 #include <trap.h>
 
+/* ========== Lab5-Challenge ==========*/
+void syscall_print_string(char* str)
+{
+	msyscall(SYS_print_string, str, 0, 0, 0, 0);
+}
+/* ========== End of Lab5-Challenge ==========*/
+
 void syscall_putchar(char ch)
 {
 	msyscall(SYS_putchar, (int)ch, 0, 0, 0, 0);

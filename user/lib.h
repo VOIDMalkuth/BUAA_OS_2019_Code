@@ -7,6 +7,11 @@
 #include <env.h>
 #include <args.h>
 #include <unistd.h>
+
+/* ========== Lab5-Challenge ==========*/
+void syscall_print_string(char *str);
+/* ========== End of Lab5-Challenge ==========*/
+
 /////////////////////////////////////////////////////head
 extern void umain();
 extern void libmain();
@@ -26,6 +31,7 @@ void user_lp_Print(void (*output)(void *, const char *, int),
 				   va_list ap);
 
 void writef(char *fmt, ...);
+void oldwritef(char *fmt, ...);
 
 void _user_panic(const char *, int, const char *, ...)
 __attribute__((noreturn));
