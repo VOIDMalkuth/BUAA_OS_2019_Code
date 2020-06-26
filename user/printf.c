@@ -1,7 +1,7 @@
 
 
 #include "lib.h"
-
+#include <safeprint.h>
 
 
 
@@ -44,6 +44,11 @@ void writef(char *fmt, ...)
     va_end(ap);
 
     writefx_buf[1023] = '\0';
+
+#if _SAFEPRINT_ON == 1
+    user_bcopy(writefx_buf, PRINTADDR, MAXPRINTLEN);
+#endif  /* _SAFEPRINT_ON == 1 */
+
     syscall_print_string(writefx_buf);
 }
 

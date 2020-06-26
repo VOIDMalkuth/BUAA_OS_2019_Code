@@ -5,6 +5,8 @@
 #include <pmap.h>
 #include <sched.h>
 
+#include <safeprint.h>
+
 extern char *KERNEL_SP;
 extern struct Env *curenv;
 extern int syscall_sched_forceReSchedule;
@@ -551,5 +553,10 @@ int sys_load_icode(int sysno, u_int envid, u_char* binary, u_int size) {
 
 /* ========== Lab5-Challenge ==========*/
 void sys_print_string(int sysno, char *str) {
-	printf("%s", str);
+#if _SAFEPRINT_ON == 1
+	str = (char *)(PRINTADDR);
+	str[MAXPRINTLEN - 1] = '\0';
+#endif  /* _SAFEPRINT_ON == 1 */
+    
+    printf("%s", str);
 }
