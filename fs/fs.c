@@ -1,6 +1,9 @@
 #include "fs.h"
 #include <mmu.h>
 
+#define DETAIL_OUTPUT
+#undef DETAIL_OUTPUT
+
 struct Super *super;
 
 u_int nbitmap;		// number of bitmap blocks
@@ -533,8 +536,11 @@ file_dirty(struct File *f, u_int offset)
 	if ((r = file_get_block(f, offset / BY2BLK, &blk)) < 0) {
 		return r;
 	}
-
-	*(volatile char *)blk = *(volatile char *)blk;
+#ifdef DETAIL_OUTPUT
+	writef("[fs] Dirtying %s, %d at 0x%x\n", f->f_name, offset, blk);
+#endif /* DETAIL_OUTPUT */
+	// *(volatile char *)blk = *(volatile char *)blk;
+	syscall_mem_map(0, blk, 0, blk, ((*vpt)[VPN(blk)] & 0xfff) | PTE_D);
 	return 0;
 }
 
@@ -825,6 +831,9 @@ file_flush(struct File *f)
 			continue;
 		}
 		if (block_is_dirty(diskno)) {
+#ifdef DETAIL_OUTPUT
+            writef("Writing back %s, %d\n", f->f_name, bno);
+#endif /* DETAIL_OUTPUT */
 			write_block(diskno);
 		}
 	}
