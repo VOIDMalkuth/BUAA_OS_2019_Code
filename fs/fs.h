@@ -2,6 +2,9 @@
 #include <fs.h>
 #include <mmu.h>
 
+#define DETAIL_OUTPUT
+#undef DETAIL_OUTPUT
+
 /* IDE disk number to look on for our file system */
 #define DISKNO		1
 

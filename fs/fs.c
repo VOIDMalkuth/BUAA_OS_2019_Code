@@ -1,9 +1,6 @@
 #include "fs.h"
 #include <mmu.h>
 
-#define DETAIL_OUTPUT
-#undef DETAIL_OUTPUT
-
 struct Super *super;
 
 u_int nbitmap;		// number of bitmap blocks

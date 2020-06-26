@@ -99,7 +99,9 @@ ide_write(u_int diskno, u_int secno, void *src, u_int nsecs)
 	u_int ideDataBase = 0x13000000 + 0x4000;
 	const u_int ideOp_write = 1;
 
+#ifdef DETAIL_OUTPUT
 	writef("diskno: %d\n", diskno);
+#endif /* DETAIL_OUTPUT */
 	while (offset_begin + offset < offset_end) {
 	    int r = syscall_write_dev(src + offset, ideDataBase, BY2SECT);
 		if (r != 0) {
