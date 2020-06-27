@@ -79,21 +79,33 @@ void user_bzero(void *v, u_int n)
  * the faulting page at correct address.
  */
 /*** exercise 4.13 ***/
-static void
+void
 pgfault(u_int va)
 {
-    u_int tmp = UTOP - 2 * BY2PG;
+	int r;
+	u_int tmp = UTOP - 2 * BY2PG;
 	//	writef("fork.c:pgfault():\t va:%x\n",va);
 
 	u_int perm = ((Pte *)(*vpt))[VPN(va)] & 0xfff;
+	u_int newPerm;
 
+	if ((perm & PTE_X) != 0) { // handle PTE_X first
+		newPerm = (perm | PTE_D | PTE_R | PTE_V) & (~PTE_X);
+        r = syscall_mem_map(0, va, 0, va, newPerm);
+        if (r < 0) {
+            user_panic("Map to va failed in PTE_X\n");
+        }
+        return;
+	}
+	
 	if ((perm & PTE_COW) == 0) {
 		user_panic("Not a COW page\n");
 	}
 
+	newPerm = (perm | PTE_R | PTE_V) & (~PTE_COW);
+
 	//map the new page at a temporary place
-	u_int newPerm = (perm | PTE_R | PTE_V) & (~PTE_COW);
-	int r = syscall_mem_alloc(0, tmp, newPerm);
+	r = syscall_mem_alloc(0, tmp, newPerm);
 	if (r < 0) {
 		user_panic("Page alloc failed\n");
 	}

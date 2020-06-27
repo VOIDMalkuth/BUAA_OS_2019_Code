@@ -76,7 +76,7 @@ map_block(u_int blockno)
 
 	// Step 2: Alloc a page of memory for this block via syscall.
 	va = diskaddr(blockno);
-	int r = syscall_mem_alloc(0, va, PTE_R | PTE_V);
+	int r = syscall_mem_alloc(0, va, PTE_X | PTE_V);
 	
 	// NoRead!
 	return r;
@@ -162,7 +162,7 @@ read_block(u_int blockno, void **blk, u_int *isnew)
 		if (isnew) {
 			*isnew = 1;
 		}
-		syscall_mem_alloc(0, va, PTE_V | PTE_R);
+		syscall_mem_alloc(0, va, PTE_X | PTE_V);
 		ide_read(0, blockno * SECT2BLK, (void *)va, SECT2BLK);
 	}
 
@@ -189,7 +189,7 @@ write_block(u_int blockno)
 	va = diskaddr(blockno);
 	ide_write(0, blockno * SECT2BLK, (void *)va, SECT2BLK);
 
-	syscall_mem_map(0, va, 0, va, (PTE_V | PTE_R | PTE_LIBRARY));
+	syscall_mem_map(0, va, 0, va, (PTE_V | PTE_X | PTE_LIBRARY));
 }
 
 // Overview:
@@ -536,8 +536,8 @@ file_dirty(struct File *f, u_int offset)
 #ifdef DETAIL_OUTPUT
 	writef("[fs] Dirtying %s, %d at 0x%x\n", f->f_name, offset, blk);
 #endif /* DETAIL_OUTPUT */
-	// *(volatile char *)blk = *(volatile char *)blk;
-	syscall_mem_map(0, blk, 0, blk, ((*vpt)[VPN(blk)] & 0xfff) | PTE_D);
+	*(volatile char *)blk = *(volatile char *)blk;
+	// syscall_mem_map(0, blk, 0, blk, ((*vpt)[VPN(blk)] & 0xfff) | PTE_D);
 	return 0;
 }
 

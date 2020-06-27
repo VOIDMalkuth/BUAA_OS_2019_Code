@@ -22,8 +22,14 @@ libmain(int argc, char **argv)
 	envid = syscall_getenvid();
 	envid = ENVX(envid);
 	env = &envs[envid];
+    
+    set_pgfault_handler(pgfault);
+    
 	// call user main routine
 	umain(argc,argv);
+    
+    close_all();
+    
 	// exit gracefully
 	exit();
 	//syscall_env_destroy(0);

@@ -93,7 +93,10 @@ file_close(struct Fd *fd)
 
 	// Tell the file server the dirty page.
 	for (i = 0; i < size; i += BY2PG) {
-		fsipc_dirty(fileid, i);
+        // writef("%x: %s: %x\n", env->env_id, ffd->f_file.f_name, (* vpt)[VPN(va + i)]);
+		if (((* vpt)[VPN(va + i)] & PTE_V) && ((* vpt)[VPN(va + i)] & PTE_D)) {
+			fsipc_dirty(fileid, i);
+		}
 	}
 
 	// Request the file server to close the file with fsipc.
@@ -197,6 +200,9 @@ file_write(struct Fd *fd, const void *buf, u_int n, u_int offset)
 			return r;
 		}
 	}
+    
+    // writef("Writing to %x\n" , (char *)fd2data(fd) + offset);
+    // writef("BeforeWrite: %x\n", (* vpt)[VPN(fd2data(fd) + offset)]);
 
 	// Write the data
 	user_bcopy(buf, (char *)fd2data(fd) + offset, n);

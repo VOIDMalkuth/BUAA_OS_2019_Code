@@ -1,6 +1,8 @@
 #ifndef _MMU_H_
 #define _MMU_H_
 
+// For lab5-challenge
+#define PTE_X		0x0008 // Lab5-Challenge Dirty Enabling Mark
 
 /*
  * This file contains:

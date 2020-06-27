@@ -11,6 +11,7 @@
 /* ========== Lab5-Challenge ==========*/
 void syscall_print_string(char *str);
 int syscall_grant_devperm(u_int envid, u_int newPerm);
+void pgfault(u_int va);
 /* ========== End of Lab5-Challenge ==========*/
 
 /////////////////////////////////////////////////////head

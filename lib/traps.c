@@ -53,6 +53,28 @@ page_fault_handler(struct Trapframe *tf)
     struct Trapframe PgTrapFrame;
     extern struct Env *curenv;
 
+    if((tf->cp0_epc & 0x80000000) != 0) {
+        if (curenv == NULL) {
+            panic("PageFault in kernel!\n");
+        }
+
+        int va = ROUNDDOWN(tf->cp0_badvaddr, BY2PG);
+        Pte *pte;
+        page_lookup(curenv->env_pgdir, va, &pte);
+        u_int perm = (*pte) & 0xfff;
+
+	    if ((perm & PTE_X) != 0) { // handle PTE_X in kernel space
+		    u_int newPerm = (perm | PTE_D | PTE_R | PTE_V) & (~PTE_X);
+            int r = sys_mem_map(0/* sysno, useless*/, 0, va, 0, va, newPerm);
+            if (r < 0) {
+                panic("Map to va[0x%x] failed in PTE_X, ErrorCode: %d\n", va, r);
+            }
+            return;
+	    } else {
+            panic("PageFault in kernel!\n");
+        }
+    }
+
     bcopy(tf, &PgTrapFrame, sizeof(struct Trapframe));
 
     if (tf->regs[29] >= (curenv->env_xstacktop - BY2PG) &&

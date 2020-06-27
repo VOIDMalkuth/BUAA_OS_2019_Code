@@ -197,7 +197,7 @@ int spawn(char *prog, char **argv)
 			{
 				va = pn*BY2PG;
 
-				if((r = syscall_mem_map(0,va,child_envid,va,(PTE_V|PTE_R|PTE_LIBRARY)))<0)
+				if((r = syscall_mem_map(0,va,child_envid,va,(PTE_V|PTE_X|PTE_LIBRARY)))<0)
 				{
 
 					writef("va: %x   child_envid: %x   \n",va,child_envid);
