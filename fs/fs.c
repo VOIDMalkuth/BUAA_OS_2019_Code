@@ -164,6 +164,10 @@ read_block(u_int blockno, void **blk, u_int *isnew)
 		}
 		syscall_mem_alloc(0, va, PTE_X | PTE_V);
 		ide_read(0, blockno * SECT2BLK, (void *)va, SECT2BLK);
+        int r = syscall_mem_map(0, va, 0, va, ((*vpt)[VPN(va)] & 0xfff & ~PTE_D & ~PTE_R) | PTE_X);
+		if (r != 0) {
+			user_panic("Clear dirty failed in IDE, va: 0x%x, return val is %d\n", va, r);
+		}
 	}
 
 	// Step 5: if blk != NULL, set `va` to *blk.
