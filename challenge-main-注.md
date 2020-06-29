@@ -1,0 +1,2 @@
+这是Lab5-Challenge的主要分支，内存保护采用方法2，不修改gxemul
+内存保护的方法1相关内容在另一个分支里，请移步lab5-challenge-alter查看
