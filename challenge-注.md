@@ -1,0 +1,4 @@
+这是Lab5-challenge必做部分的第一种方案，改动gxemul的分支
+Gxemul相关的改动文件位于gxemul-mod文件夹中，替换gxemul-0.4.6/src/cpus中的文件重新编译即可。
+gxemul-mod文件夹中本应有gxemul的可执行文件，但是鉴于太大无法上传故只能删除
+此后的开发在lab5-challenge分支中进行。
